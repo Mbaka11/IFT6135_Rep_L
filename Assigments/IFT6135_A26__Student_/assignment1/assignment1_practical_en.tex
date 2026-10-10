@@ -1,0 +1,446 @@
+\documentclass[12pt]{article}
+\usepackage[canadien]{babel} 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfigure}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{todonotes}
+
+% If your paper is accepted, change the options for the package
+% aistats2e as follows:
+%
+%\usepackage[accepted]{aistats2e}
+%
+% This option will print headings for the title of your paper and
+% headings for the authors names, plus a copyright note at the end of
+% the first column of the first page.
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\addtolength{\parskip}{5mm}
+\pagestyle{fancy}
+
+%************
+%* COMMANDS *
+%************
+
+\input{../math_commands.tex}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{booktabs}
+\usepackage[ruled,vlined]{algorithm2e}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}%[chapter]
+\newtheorem{answer}{Answer} % asterisk to remove ordering
+
+\newcommand{\Exercise}[1]{
+\ifexercise#1\fi
+}
+
+\definecolor{answer}{rgb}{0.00, 0.12, 0.60}
+\newcommand{\Answer}[1]{
+\ifsolution\color{answer}\begin{answer}#1\end{answer}\fi
+}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{enumitem}
+\newcommand{\staritem}{
+\addtocounter{enumi}{1}
+\item[$\phantom{x}^{*}$\theenumi]}
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+\begin{document}
+
+
+\fancyhead{}
+\fancyfoot{}
+
+\fancyhead[L]{
+  \begin{tabular}[b]{l}
+    IFT6135-A2026  \\
+    Prof: Aishwarya Agrawal \\
+  \end{tabular}
+}
+\fancyhead[R]{
+  \begin{tabular}[b]{r}
+    Assignment 1 - Programming  \\
+    Multilayer Perceptrons and Convolutional Neural Networks  \\
+  \end{tabular}
+}
+\fancyfoot[C]{- Do not distribute -}
+
+\vspace{1cm}
+
+\shorthandoff{:}
+{\textbf{Due Date: October 13th, 2026 at 11:00 pm}}\\
+
+
+\vspace{-0.5cm}
+\underline{Instructions}%
+\renewcommand{\labelitemi}{\textbullet}
+
+\renewcommand{\labelitemi}{\textbullet}
+
+\begin{itemize}
+\item \emph{This assignment is intensive, start well ahead of time!}
+\item \emph{For all questions, show your work.}
+\item \emph{The practical part has been provided to you as a Jupyter Notebook on Google Colab and a Python module to complete. You must submit the required \texttt{.py} files to  to Gradescope for autograding.}
+\item \emph{You must also submit your report (PDF) on Gradescope. Your report must contain answers to Questions 1.2.1 to 1.2.3 and 2.1.1 to 2.2.4. You do need to also provide your Google Colab notebook with outputs already generated and publicly accessible.}
+\item \emph{TAs for this assignment are \textbf{Achille Sowa} and \textbf{Guillermo Martin}.}
+\end{itemize}
+\vspace{0.2cm}
+
+
+\vspace{0.2cm}
+
+% Q1
+\begin{exercise}[20] \textbf{(MLP Implementation with NumPy)}
+\Exercise{\label{ex:mlp}
+\noindent This question is divided into two parts. In Part~1, you will implement a multilayer
+perceptron (MLP) using only \texttt{numpy}, along with the building blocks needed to define
+(layers, activation functions, loss functions) and train (optimizer) such a network. In
+Part~2, you will use the networks implemented in Part~1 to perform time series forecasting
+on a collection of synthetic datasets.
+
+\textbf{Source code link :}
+\url{https://drive.google.com/file/d/1WxmlqjqMo1PwlZoV_-pojZGSVUZ2wrd9/view}
+You are given four source files to complete:
+\begin{itemize}[nosep]
+    \item \texttt{nn.py} --- defines the differentiable building blocks of the network. Every
+    such block is a subclass of the base class \texttt{Module}, and must implement a
+    \texttt{forward} and a \texttt{backward} method.
+    \item \texttt{model.py} --- assembles blocks from \texttt{nn.py} into complete models.
+    \item \texttt{optim.py} --- implements the optimizer used to train the models (SGD).
+    \item \texttt{train.py} --- train the different models
+\end{itemize}
+
+\noindent \textbf{Important:} Do not modify the provided code, \emph{except} inside the
+regions delimited by the \texttt{\#\#CODE} ... \texttt{\#\#END} markers. 
+Everything outside these markers must be left as-is: it is required for automated grading.
+Only fill in the marked blocks.
+
+
+
+\subsection*{Part 1: Building Blocks of a Neural Network}
+
+
+\begin{enumerate}[label=\textbf{1.1.\arabic*}, leftmargin=*]
+
+    \item \textbf{Linear layer (2 points).} Implement the class \texttt{Linear} in \texttt{nn.py}, computing
+    \[
+        Z = W X + b 
+    \]
+    
+    \begin{enumerate}[label=(\alph*), nosep]
+        \item Implement the \texttt{forward} method.
+        \item Implement the \texttt{backward} method, returning the gradient of the loss with
+        respect to the layer's input, and storing the gradients with respect to $W$ and $b$.
+    \end{enumerate}
+
+    \item \textbf{Activation functions (3 points).} Implement the following three activation functions
+    as subclasses of \texttt{Module} in \texttt{nn.py}:
+    \begin{itemize}[nosep]
+        \item \texttt{ReLU}
+        \item \texttt{Sigmoid}
+        \item \texttt{Tanh}
+    \end{itemize}
+    For each class, implement both the \texttt{forward} and the \texttt{backward} pass.
+
+    \item \textbf{Loss functions (2 points).} Implement the following two loss functions as subclasses
+    of \texttt{Module} in \texttt{nn.py}:
+    \begin{itemize}[nosep]
+        \item \texttt{MSE} --- mean squared error.
+        \item \texttt{MAE} --- mean absolute error.
+    \end{itemize}
+    For each class, implement both the \texttt{forward} and the \texttt{backward} pass.
+
+    \item \textbf{Assembling models (2 points).} Using the blocks above, complete \texttt{model.py} to
+    build:
+    \begin{enumerate}[label=(\alph*), nosep]
+        \item a 1-layer MLP (a single linear layer, no hidden layer);
+        \item a 2-layer MLP whose hidden activation function is a configurable argument of
+        the constructor (\texttt{ReLU}, \texttt{Sigmoid}, or \texttt{Tanh}).
+    \end{enumerate}
+
+
+    \item \textbf{Optimization module (0.5 point).} Implement the method \texttt{SGD.step} in
+    \texttt{optim.py} (see the \texttt{TODO} comment in the code for the exact update rule).
+
+    \item \textbf{Training loop (1.5 point).} Implement the inner mini-batch loop of the function
+    \texttt{train\_model} in \texttt{train.py} (see the \texttt{TODO} comment in the code for the
+    required steps).
+    
+    
+\end{enumerate}
+
+
+
+\subsection*{Part 2: Time Series Forecasting}
+
+In this part, you will train the networks defined in Part~1 on the task of time series
+forecasting.
+
+\subsection*{Background}
+
+A time series is a sequence of observations recorded at regular time intervals over a given
+period. If a single value is recorded at each time step, the series is \emph{univariate}; if
+several values are recorded at each time step, it is \emph{multivariate}. Collecting $d$
+values at each of $N$ time steps gives a time series $X \in \mathbb{R}^{d \times N}$.
+
+Given a \emph{context} of length $h$, the task of time series forecasting consists of predicting the next $p$
+values $X_{t+1:t+p}$ based on the previous $h$ values $X_{t-h:t}$
+\subsection*{Datasets}
+
+A set of synthetic univariate datasets and a corresponding data loader are provided so that
+you can easily instantiate them. Each dataset contains $11{,}000$ points, split into
+train/validation/test sets with a $6:2:2$ ratio. The base series are:
+\begin{itemize}[nosep]
+    \item \texttt{sine\_slow}, \texttt{sine\_fast}
+    \item \texttt{linear\_trend}
+    \item \texttt{quadra\_trend}
+    \item \texttt{expo\_trend}
+\end{itemize}
+along with a noisy version of each (additive Gaussian noise at different signal-to-noise
+ratio), for $20$ datasets in total.
+
+\subsection*{Models}
+
+Instantiate the following five models, all built from the blocks completed in Part~1:
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Name} & \textbf{Architecture} & \textbf{Hidden activation} & \textbf{Loss} \\
+\midrule
+\texttt{MLP\_1}              & 1-layer MLP & --- & MSE \\
+\texttt{MLP\_2\_ReLU}        & 2-layer MLP & ReLU & MSE \\
+\texttt{MLP\_2\_Sigmoid\_MSE} & 2-layer MLP & Sigmoid & MSE \\
+\texttt{MLP\_2\_Sigmoid\_MAE} & 2-layer MLP & Sigmoid & MAE \\
+\texttt{MLP\_2\_Tanh}        & 2-layer MLP & Tanh & MSE \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Note that \texttt{MLP\_2\_Sigmoid\_MSE} and \texttt{MLP\_2\_Sigmoid\_MAE} share the same
+architecture and differ only in the loss function used to train them, allowing a direct
+comparison of MSE against MAE.
+
+\subsection*{Experiments}
+
+Train each of the five models above on each of the 20 datasets, for each of the following
+(context length, prediction horizon) settings: 
+
+\begin{center}
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{Setting} & \textbf{Context length $h$} & \textbf{Prediction horizon $p$} \\
+\midrule
+1 & 96  & 336 \\
+2 & 336 & 336 \\
+3 & 336 & 720 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The number of epochs, learning rate, and other training hyperparameters are set to their default values directly in \texttt{train.py}. No modifications to these settings are required.
+You only need to run the \texttt{train.py} file
+
+\subsection*{Evaluation and Analysis}
+
+\begin{enumerate}[label=\textbf{1.2.\arabic*}, leftmargin=*]
+
+\item \textbf{(3 points)} For every combination of dataset, model, and (context, horizon) setting, report the test
+\texttt{MSE} and test \texttt{MAE}.
+
+For the noisy datasets, you have access to both the noisy targets and the underlying
+noiseless ground truth. In addition to the metrics above, compute \texttt{gt\_test\_mse} and
+\texttt{gt\_test\_mae}: the MSE and MAE of each model's predictions evaluated against the
+\emph{noiseless} ground truth, rather than the noisy targets. These metrics measure how well
+a model recovers the true underlying signal, i.e.\ how good a denoiser it is.
+
+\item \textbf{(3 points)} Using \texttt{gt\_test\_mse} and \texttt{gt\_test\_mae}, identify the best- and worst-performing models on each dataset and plot their predictions. Are these results consistent with what you would expect based on the depth and choice of activation function of each model?
+
+\item \textbf{(3 points)} 
+For tasks with a prediction horizon of $p=336$, both 96-step and 336-step contexts are available. Report the number of cases in which each context yields the best prediction. Are these results consistent with your initial expectations?
+
+\end{enumerate}
+
+\textbf{Submission.}
+Submit \texttt{nn.py, model.py, optim.py, train.py},
+a PDF report with the requested analysis. Experimental work is graded
+on correctness, reproducibility, and interpretation, not a target accuracy.
+
+\end{exercise}}
+
+
+
+% Q2
+\begin{exercise}[20] \textbf{(Implementing CNN layers with NumPy)}
+\Exercise{\label{ex:cnn}
+
+Implement convolutional and max-pooling layers, then investigate
+whether a CNN recognizes a local pattern at unseen positions.
+This question is independent of Question~1.
+
+Complete the provided notebook, which contains the code templates,
+dataset generator, training and evaluation code, and public tests.
+Additional private tests will be used for grading.
+
+Use NumPy only for your implementations.
+
+\textbf{Link to Notebook:}
+\url{https://colab.research.google.com/drive/12gqOkB_v4S1dl0L8iJosbbvxIhAxXIRM#scrollTo=d47b04c4}
+
+\subsection*{Part 1: CNN layers (11 points)}
+
+All spatial arrays use $(N,C,H,W)$ ordering. Follow the notebook's
+requirements for dtypes, valid input sizes, caches, and gradients.
+
+\begin{enumerate}[label=\textbf{2.1.\arabic*}, leftmargin=*]
+    \item \textbf{Convolution (6 points).}
+    Implement \texttt{conv2d\_forward} and \texttt{conv2d\_backward}.
+    Use $3\times3$ kernels, stride $1$, and one pixel of zero-padding
+    on each side. Support multiple input and output channels, with
+    one bias per output channel. Use cross-correlation: do not flip
+    the filters. Return the output and cache in the forward pass,
+    and gradients with respect to the input, filters, and biases
+    in the backward pass.
+
+    \item \textbf{Max pooling (3 points).}
+    Implement \texttt{maxpool2d\_forward} and
+    \texttt{maxpool2d\_backward} using $2\times2$ windows, stride $2$,
+    and no padding. Return the output and cache in the forward pass
+    and the input gradient in the backward pass. For tied maxima,
+    select the first in row-major order and send the gradient only
+    to that entry.
+
+    \item \textbf{Dimensions and parameters (1 point).}
+    Verify the output shapes in the table below. Show the parameter
+    count of each trainable layer, including biases, and the total.
+    Identify the layers with no trainable parameters.
+
+    \item \textbf{Numerical checks (1 point).}
+    Run the supplied tests and finite-difference gradient checks.
+    Report and save the numerical errors. Finite differences are
+    for validation only; training must use your analytical backward
+    implementations.
+\end{enumerate}
+
+% \newpage
+\subsection*{Part 2: Generalization to new positions (9 points)}
+
+\textbf{Dataset.}
+Each $24\times24$ grayscale image contains a $6\times6$ grid of
+$4\times4$-pixel tiles: 18 dark tiles of intensity $0.2$ and 18 light
+tiles of intensity $0.8$. All pixels within a tile have the same value.
+Positive images (label $1$) contain exactly one $2\times2$ block of
+neighboring tiles that are all dark or all light. Negative images
+(label $0$) contain no such block anywhere. Blocks do not wrap
+around boundaries.
+
+The supplied splits contain 2048 training images and 512 images each
+for validation, seen-location test, and unseen-location test.
+All splits are balanced by class and have disjoint tile layouts.
+Positive examples are also balanced by block location and type.
+A location is the zero-indexed $(\mathrm{row},\mathrm{column})$ of
+the block's top-left tile. Training, validation, and seen-location
+positives use $(1,1)$ or $(1,3)$; unseen-location positives use
+$(3,1)$ or $(3,3)$. Negatives follow the same no-block rule in all
+splits. The test sets contain different images, not paired translations.
+Only images, not layout metadata, are model inputs.
+
+\begin{enumerate}[label=\textbf{2.2.\arabic*}, leftmargin=*]
+    \item \textbf{Build the CNN (2 points).}
+    Complete \texttt{build\_model(seed)} to return a new
+    \texttt{Sequential} model with the architecture below.
+    Use the supplied initialization. Both convolutions and the
+    linear layer include biases. Output shapes omit the batch axis;
+    the model returns two raw logits, without a final softmax.
+
+    \begin{center}
+    \begin{tabular}{lll}
+    \toprule
+    Layer & Configuration & Output shape \\
+    \midrule
+    Input & Grayscale & $1\times24\times24$ \\
+    Convolution + ReLU & 8 filters, $3\times3$, stride 1, padding 1
+        & $8\times24\times24$ \\
+    Max pooling & $2\times2$, stride 2, no padding
+        & $8\times12\times12$ \\
+    Convolution + ReLU & 16 filters, $3\times3$, stride 1, padding 1
+        & $16\times12\times12$ \\
+    Global max pooling & Maximum over both spatial axes & $16$ \\
+    Linear & $16\rightarrow2$, with bias & $2$ \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+
+    \item \textbf{Training and seen locations (3 points).}
+    Train once for 30 epochs with batch size 64 and Adam at learning
+    rate $0.003$. Keep all seeds, initialization, and other settings
+    as supplied in the notebook; do not add layers, augmentation,
+    or hyperparameter search.
+    Select the lowest validation-cross-entropy checkpoint, preferring
+    the earlier epoch on a tie. Do not use either test set for selection.
+    Plot training and validation loss and accuracy, report the selected
+    epoch, and evaluate accuracy on the seen-location test set.
+
+    \item \textbf{Unseen locations: no retraining (2 points).}
+    Evaluate the same checkpoint on the unseen-location test set
+    without updating any parameters. Report accuracy, positive-class
+    recall, and a confusion matrix for each test set, using the
+    provided evaluation functions. Use true labels as matrix rows
+    and predictions as columns.
+
+    \item \textbf{Interpretation (2 points).}
+    Show at least two positive examples from each test set, with
+    labels, predictions, block locations, and example identifiers.
+    Discuss an error if one occurs; otherwise state that none occurred.
+    Explain the seen/unseen comparison in terms of local receptive
+    fields, weight sharing, and global max pooling. Distinguish
+    empirical generalization from guaranteed translation invariance,
+    considering zero-padding, stride-2 pooling, and independently
+    sampled test images. Do not assume performance must decrease.
+\end{enumerate}
+
+\textbf{Submission.}
+Submit \texttt{cnn\_layers.py}, \texttt{cnn.py}, your executed notebook,
+a PDF report with the requested calculations and experimental results,
+and the exported \texttt{q2\_results.zip}. Experimental work is graded
+on correctness, reproducibility, and interpretation, not a target accuracy.
+
+
+
+\end{exercise}}
+
+
+
+\end{document}

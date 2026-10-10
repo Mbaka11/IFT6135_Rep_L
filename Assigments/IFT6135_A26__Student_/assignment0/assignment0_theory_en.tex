@@ -1,0 +1,216 @@
+\documentclass[12pt]{article}
+\usepackage[french]{babel} 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfigure}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{todonotes}
+
+% If your paper is accepted, change the options for the package
+% aistats2e as follows:
+%
+%\usepackage[accepted]{aistats2e}
+%
+% This option will print headings for the title of your paper and
+% headings for the authors names, plus a copyright note at the end of
+% the first column of the first page.
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\addtolength{\parskip}{5mm}
+\pagestyle{fancy}
+
+%************
+%* COMMANDS *
+%************
+
+\input{../math_commands.tex}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{booktabs}
+\usepackage[ruled,vlined]{algorithm2e}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}%[chapter]
+\newtheorem{answer}{Answer} % asterisk to remove ordering
+
+\newcommand{\Exercise}[1]{
+\ifexercise#1\fi
+}
+
+\definecolor{answer}{rgb}{0.00, 0.12, 0.60}
+\newcommand{\Answer}[1]{
+\ifsolution\color{answer}\begin{answer}#1\end{answer}\fi
+}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{enumitem}
+\newcommand{\staritem}{
+\addtocounter{enumi}{1}
+\item[$\phantom{x}^{*}$\theenumi]}
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+\begin{document}
+
+
+\fancyhead{}
+\fancyfoot{}
+
+\fancyhead[L]{
+  \begin{tabular}[b]{l}
+    IFT6135-A2026  \\
+    Prof: Aishwarya Agrawal \\
+  \end{tabular}
+}
+\fancyhead[R]{
+  \begin{tabular}[b]{r}
+    Assignment 0  \\
+    Calculus, Linear Algebra, Probability and Statistics \\
+  \end{tabular}
+}
+\fancyfoot[C]{- Do not distribute -}
+
+\vspace{1cm}
+
+\shorthandoff{:}
+{\textbf{Due Date: September 6th, 2026 at 11:00 pm}}\\
+
+
+\vspace{-0.5cm}
+\underline{Instructions}%
+\renewcommand{\labelitemi}{\textbullet}
+
+\begin{itemize}
+\item \emph{This assignment serves as a warm-up for the following assignments. You are not obliged to finish this assignment, but some of the results here might be useful for the upcoming assignments. Unless otherwise specified, you may use the results in this assignment directly in your answer in the future.}
+\item \emph{Use LaTeX and the template we provide when writing your answers.
+You may reuse most of the notation shorthands, equations and/or tables.
+See the assignment policy on the course website for more details.}
+% \item \emph{You will be using Gradescope, you should have received an invitation email (sent to the email address you use for StudiuM). Otherwise reply to the thread named "Gradescope Sign Up" on Piazza to let the TA know your “name”, “email” and “student ID” (matricule) as shown on StudiuM to ask the TA to add you on Gradescope. 
+% }
+\item \emph{Submit this test assignment on Gradescope (you don't need to complete it, but are recommended to do it for self evaluation). Make sure that you select the pages containing the answer for each question on Gradescope. We will not grade questions without selected pages.}
+\item \emph{TAs for this course are \textbf{Aneri Muni, Achille Sowa, Djalil Chikhi, Guillermo Martin, Qichen Huang, and Serena Chan}.}
+\end{itemize}
+\vspace{0.2cm}
+
+% Q1
+\begin{exercise}[5-5-10]
+\Exercise{\label{ex:linear_proj_distinct}
+Given any unit vector $\vn$ (i.e. $||\vn||=1$), we define the hyperplane $\gH_\vn:=\{\vx:\vn^\top\vx=0\}$ for which $\vn$ is known as the normal vector. 
+For any vector $\vx$, we define its projection into $\gH_\vn$ as $\pi_\vn(\vx)=\vx-(\vx^\top\vn)\vn$.
+
+\begin{enumerate}
+\item Given two vectors $\vx_1\neq\vx_2$, take $\vn=\frac{\vx_2-\vx_1}{||\vx_2-\vx_1||}$.
+Show that $\pi_\vn(\vx_1)=\pi_\vn(\vx_2)$. 
+\item Let $\vw$ be a vector and define $y_1:=\vx_1^\top\vw$ and $y_2:=\vx_2^\top\vw$. 
+Show that $y_1=y_2$ if and only if $\vw\in\gH_\vn$. 
+\staritem Let $\mX$ be a $n$ by $p$ matrix whose rows $\mX_{i, :}$ are all distinct.  
+Show that there exists a vector $\vw$ of length $p$ such that the scalars $(\mX\vw)_i$ are all distinct. 
+\end{enumerate}}
+
+\Answer{
+% Write your answer here
+}
+\end{exercise}
+
+% Q2
+\begin{exercise}[10]
+\Exercise{\label{ex:compute_gradient}
+Compute the gradients of $||\vx||_2^2$, $||\vx-\va||_2$, $||\mX||_F^2$, and $\vx^\top\mA\vx$ w.r.t the input vector $\vx$ and and matrix $\mX$.}
+
+\Answer{
+% Write your answer here
+}
+\end{exercise}
+
+% Q3
+\begin{exercise}[10]
+\Exercise{\label{ex:normal_dist_integral}
+A random variable $x$ in standard normal distribution has the following probability density:
+%
+\begin{align}
+p(x) = \frac{1}{{\sqrt {2\pi } }}{e^{ - \frac{{{x^2}}}{2}}}
+\end{align}
+%
+Evaluate the following integral:
+%
+\begin{align}
+\int\limits_{ - \infty }^\infty  {p(x)(a{x^2} + b{x} + c)dx}
+\end{align}
+
+[\emph{Hint:} This is not a calculus question.]}
+
+\Answer{
+% Write your answer here
+}
+\end{exercise}
+
+% Q4
+\begin{exercise}[10]
+\Exercise{\label{ex:mle}
+For a random variable $X \in \mathbb{R}$ whose probability density function as defined as:
+$$
+    p(x) = \frac{1}{\sqrt{2 \pi \sigma^2}} \mathrm{exp} \left( - \frac{(x-\mu)^2}{2 \sigma^2} \right)
+$$
+where $\mu = E[X]$ and $\sigma^2 = Var[X]$, prove that the Maximum Likelihood Estimate (MLE) for $\mu$ is the sample mean of the samples $\{ x_1, x_2, \ldots, x_N\}$}
+
+\Answer{
+% Write your answer here
+}
+\end{exercise}
+
+%Q5
+\begin{exercise}[10]
+\Exercise{\label{ex:log_proof}
+Prove that
+%
+\begin{align}
+\log_e x\leq x-1, \qquad \forall x>0
+\end{align}
+%
+with equality if and only if $x=1$.
+
+[\emph{Hint:} Consider differentiation of $\log(x)-(x-1)$ and think about concavity/convexity and second derivatives.]}
+
+\Answer{
+% Write your answer here
+}
+\end{exercise}
+
+% Q6
+\begin{exercise}[10]
+\label{ex:kl_normal}
+\Exercise{Let $Q$ and $P$ be univariate normal distributions with mean and variance $\mu,\sigma^2$ and $m,s^2$, respectively. Derive the entropy $H(Q)$, the cross-entropy $H(Q,P)$, and the KL divergence $\KL(Q||P)$.}
+
+\Answer{
+% Write your answer here
+}
+\end{exercise}
+
+\end{document}

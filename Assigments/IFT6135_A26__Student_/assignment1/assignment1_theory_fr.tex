@@ -1,0 +1,368 @@
+\documentclass[12pt]{article}
+\usepackage[canadien]{babel} 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfigure}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{array}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{todonotes}
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\addtolength{\parskip}{5mm}
+\pagestyle{fancy}
+
+%************
+%* COMMANDS *
+%************
+
+\input{../math_commands.tex}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{booktabs}
+\usepackage[ruled,vlined]{algorithm2e}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}%[chapter]
+\newtheorem{answer}{Réponse} % asterisk to remove ordering
+
+\newcommand{\Exercise}[1]{
+\ifexercise#1\fi
+}
+
+\definecolor{answer}{rgb}{0.00, 0.12, 0.60}
+\newcommand{\Answer}[1]{
+\ifsolution\color{answer}\begin{answer}#1\end{answer}\fi
+}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{enumitem}
+\newcommand{\staritem}{
+\addtocounter{enumi}{1}
+\item[$\phantom{x}^{*}$\theenumi]}
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+\newcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\relu}{\mathrm{ReLU}}
+\newcommand{\vect}[1]{\bm{#1}}
+
+\begin{document}
+
+
+\fancyhead{}
+\fancyfoot{}
+
+\fancyhead[L]{
+  \begin{tabular}[b]{l}
+    IFT6135-A2026  \\
+    Prof: Aishwarya Agrawal \\
+  \end{tabular}
+}
+\fancyhead[R]{
+  \begin{tabular}[b]{r}
+    Devoir 1  \\
+    MLPs, CNNs, Fonctions d'activation, Descente de gradient  \\
+  \end{tabular}
+}
+\fancyfoot[C]{- Ne pas distribuer -}
+
+\vspace{1cm}
+
+\shorthandoff{:}
+{\textbf{Date de remise : 13 octobre 2026 à 23h00}}\\
+
+
+\vspace{-0.5cm}
+\underline{Instructions}%
+\renewcommand{\labelitemi}{\textbullet}
+\begin{itemize}
+% \item \emph{Ce devoir sert d'échauffement pour les devoirs suivants. Vous n'êtes pas obligé de terminer ce devoir, mais certains résultats pourraient être utiles pour les prochains devoirs. Sauf indication contraire, vous pouvez utiliser directement les résultats de ce devoir dans vos réponses futures.}
+\item \emph{Utilisez LaTeX et le gabarit que nous fournissons pour rédiger vos réponses.
+Vous pouvez réutiliser la plupart des raccourcis de notation, des équations et/ou des tableaux.
+Consultez la politique de devoir sur le site du cours pour plus de détails.}
+% \item \emph{Vous utiliserez Gradescope ; vous devriez avoir reçu un courriel d'invitation (envoyé à l'adresse courriel que vous utilisez sur StudiuM). Sinon, répondez au fil nommé « Gradescope Sign Up » sur Piazza pour informer l'auxiliaire d'enseignement de votre « nom », « courriel » et « matricule » tels qu'ils apparaissent sur StudiuM afin qu'il vous ajoute sur Gradescope.
+% }
+\item \emph{Soumettez ce devoir sur Gradescope. Assurez-vous de sélectionner les pages contenant la réponse à chaque question sur Gradescope. Nous ne corrigerons pas les questions dont les pages n'ont pas été sélectionnées.}
+\item \emph{Les auxiliaires d'enseignement pour ce devoir sont \textbf{Aneri Muni et Serena Chan}.}
+\end{itemize}
+\vspace{0.2cm}
+
+% Q1
+\begin{exercise}[2-2-5-2-2-2]
+\Exercise{\label{ex:forward-backward-pass}
+
+
+Supposons que vous souhaitiez entraîner un perceptron multicouche (MLP) à deux couches pour une classification binaire, en utilisant la descente de gradient et la fonction de perte d'entropie croisée.
+
+\noindent \textbf{Architecture du réseau :}
+\begin{itemize}[nosep]
+    \item Couche d'entrée : 2 neurones
+    \item Couche cachée : 3 neurones avec activation ReLU
+    \item Couche de sortie : 1 neurone avec activation Sigmoid ($\sigma$)
+\end{itemize}
+
+\noindent \textbf{Les équations de la passe avant (forward pass) :}
+\begin{align}
+    \vect{z}^{(1)} &= W_1 \vect{x} + \vect{b}_1 \label{eq:z1} \\
+    \vect{h}^{(1)} &= \relu(\vect{z}^{(1)}) \label{eq:h1} \\
+    z^{(2)} &= W_2^\top \vect{h}^{(1)} + b_2 \label{eq:z2} \\
+    \hat{y} &= \sigmoid(z^{(2)}) = \frac{1}{1 + e^{-z^{(2)}}} \label{eq:yhat}
+\end{align}
+
+\noindent Les \textbf{notations composante par composante} suivantes peuvent être utilisées pour développer \eqref{eq:z2} :
+\begin{equation*}
+    z^{(2)} = W_{2,1}\,h_1^{(1)} + W_{2,2}\,h_2^{(1)} + W_{2,3}\,h_3^{(1)} + b_2
+    \label{eq:z2_expanded}
+\end{equation*}
+
+\noindent \textbf{Valeurs initiales des paramètres :}
+$ \quad
+W_1 = \begin{bmatrix} 1 & 0 \\ 1 & 1 \\ 0 & 1 \end{bmatrix}, \quad
+\vect{b}_1 = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}, \quad
+W_2 = \begin{bmatrix} 1 \\ -1 \\ 1 \end{bmatrix}, \quad
+b_2 = 0.
+$
+
+\noindent \textbf{Échantillon d'entraînement :}
+$ \quad \biggl\{
+\vect{x} = \begin{bmatrix} 1 \\ 1 \end{bmatrix},\; y = 1
+\biggr\},
+$
+où $x$ est l'entrée et $y$ est l'étiquette.
+
+\noindent \textbf{Conventions pour cette question :}
+\begin{itemize}[nosep]
+    \item Approximation $e \approx 3$.
+    \item On adopte la convention $\relu'(0) = 0$.
+\end{itemize}
+
+\textbf{Passe avant (forward pass) :} \\
+\noindent (1) Nous allons d'abord effectuer une passe avant en utilisant l'initialisation des paramètres donnée pour calculer les prédictions d'étiquettes $\hat{y}$ du réseau pour chaque point de données, avant tout entraînement. Remplissez les valeurs du tableau suivant :
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{l|c}
+    \toprule
+    \textbf{Quantité} & $\vect{x} = [1,1]^\top,\; y = 1$ \\
+    \midrule
+    $\vect{z}^{(1)}$ &   \\
+    $\vect{h}^{(1)}$ &   \\
+    $z^{(2)}$        &   \\
+    $\hat{y}$        &   \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Passe arrière (backward pass) :} \\
+La perte d'entropie croisée binaire est donnée par :
+\begin{equation*}
+    L = -\Big[ y \ln \hat{y} + (1 - y) \ln(1 - \hat{y}) \Big].
+    \label{eq:bce}
+\end{equation*}
+Quelle est la dérivée de la fonction de perte d'entropie croisée par rapport à $z^{(2)}$, c'est-à-dire donnez la valeur de $\pd{L}{z^{(2)}}$.
+
+\noindent (3) En utilisant la règle de chaîne, donnez la formule analytique pour :
+\begin{equation*}
+    \pd{L}{b_2}, \pd{L}{W_2}, \pd{L}{h^{(1)}}, \pd{L}{b_1}, \pd{L}{W_1}. 
+\end{equation*}
+
+\noindent (4) Substituez les valeurs de tous les paramètres et points de données pour calculer les valeurs numériques de :
+\begin{equation*}
+    \pd{L}{b_2}, \pd{L}{W_2}, \pd{L}{b_1}, \pd{L}{W_1}. 
+\end{equation*}
+
+\textbf{Descente de gradient :}\\
+\noindent (5) Nous appliquons maintenant la règle de descente de gradient standard avec un taux d'apprentissage $\eta = 0.5$. En utilisant la règle de mise à jour pour chaque paramètre $\theta$ :
+\begin{equation}
+    \theta^{\text{new}} = \theta^{\text{old}} - \eta\ \cdot \pd{L}{\theta},
+    \label{eq:update}
+\end{equation}
+calculez les valeurs numériques de $b^{\text{new}}_1, W^{\text{new}}_1, b^{\text{new}}_2, W^{\text{new}}_2$ après un pas de gradient.
+
+\noindent (6) Finalement, recalculez la prédiction d'étiquette pour le point de données donné avec les paramètres mis à jour. Est-ce que la mise à jour du gradient a déplacé la prédiction dans la bonne direction ?
+}
+
+\Answer{
+% Écrivez votre réponse ici
+}
+
+\end{exercise}
+
+
+% Q2
+\begin{exercise}[2-5-3] (\textbf{Fonctions d'activation})
+\Exercise{\label{ex:activation-fxns}
+ 
+Considérons un MLP à $L$ couches entraîné pour une tâche de classification multiclasse. Soit $x \in \mathbb{R}^d$ le vecteur d'entrée. Pour chaque couche $l \in \{1, \dots, L\}$, soit $W^{(l)}$ et $b^{(l)}$ respectivement la matrice de poids et le vecteur de biais. La dernière couche produit des logits, auxquels on applique la fonction softmax, ce qui donne la distribution de probabilité prédite, $\hat{y}$. Le réseau est entraîné à minimiser la perte d'entropie croisée $\mathcal{L}$.
+ 
+\begin{enumerate}
+    \item Supposons que la fonction d'activation soit la fonction identité, $g(a) = a$, pour toutes les couches cachées.
+    \begin{enumerate}
+        \item Rappelons qu'une couche avec une fonction d'activation linéaire effectue strictement une transformation affine. Étant données deux couches consécutives $l$ et $l+1$, démontrez que leur composition se réduit à une seule transformation équivalente.
+        \item À l'aide de votre réponse en (a), justifiez pourquoi un réseau à $L$ couches avec activations linéaires n'offre pas plus de capacité de représentation qu'un classifieur linéaire à une seule couche.
+    \end{enumerate}
+ 
+    \item Supposons que toutes les couches cachées utilisent la fonction d'activation sigmoïde, $g(a) = \sigma(a) = \frac{1}{1 + e^{-a}}$.
+    \begin{enumerate}
+        \item Déterminez la valeur maximale absolue de $g'(a)$.
+        \item À l'aide de la règle de dérivation en chaîne, démontrez une borne supérieure pour le gradient absolu à la première couche, $\left\vert{}\frac{\partial L}{\partial a^{(1)}}\right\vert{}$, en fonction de $W_{\max}$, de $L$ et du gradient de la perte à la couche de sortie. Supposons, pour cette question, que les couches cachées ont une largeur de 1 (1 neurone par couche, de sorte que les poids $w^{(l)}$ et les pré-activations $a^{(l)}$ sont des scalaires), et que la norme de chaque matrice de poids est bornée de telle sorte que $ |w^{(l)} | \leq W_{\max}$ pour tout $l$.
+        \item À l'aide de la borne obtenue en (b), exprimez la condition mathématique sur $W_{\max}$ qui fait que les gradients s'évanouissent exponentiellement lorsque la profondeur $L$ du réseau augmente.
+    \end{enumerate}
+ 
+    \item Supposons que toutes les couches cachées utilisent la fonction d'activation ReLU, $g(a) = \max(0, a)$.
+    \begin{enumerate}
+        \item Écrivez l'expression de la dérivée de la fonction ReLU, $g'(a)$.
+        \item Si un neurone $i$ de la couche $l$ a une pré-activation $a_i^{(l)} \leq 0$, quel est son vecteur de gradient des poids correspondant ?
+        \item Comparez et mettez en contraste la façon dont les réseaux LeakyReLU et Maxout peuvent être utilisés pour modifier l'étape d'activation afin d'éviter ce problème.
+    \end{enumerate}
+\end{enumerate}
+ 
+}
+
+\Answer{
+% Écrivez votre réponse ici
+}
+ 
+\end{exercise}
+
+% Q3
+\begin{exercise}[10] (\textbf{Descente de gradient)}
+\Exercise{\label{ex:loss-hessian}
+ 
+Supposons que la fonction de perte prenne la forme suivante
+$$
+L=L_0+\frac{1}{2}\left(\mathbf{w}-\mathbf{w}^{\star}\right)^{\mathrm{T}} \mathbf{H}\left(\mathbf{w}-\mathbf{w}^{\star}\right)
+$$
+ 
+où $\mathbf{w}^{\star}$ est le minimum, et la matrice hessienne $\mathbf{H}$ est définie positive et constante. Supposons que le vecteur de poids initial $\mathbf{w}^{(0)}$ soit choisi à l'origine et soit mis à jour par descente de gradient simple. 
+$$
+\mathbf{w}^{(k)}=\mathbf{w}^{(k-1)}-\rho \nabla L
+$$
+ 
+où $k$ désigne le numéro de l'étape et $\rho$ est le taux d'apprentissage (supposé petit). Montrez, par récurrence mathématique, qu'après $k$ étapes, les composantes du vecteur de poids parallèles aux vecteurs propres de $\mathbf{H}$ peuvent s'écrire 
+ 
+$$
+w_j^{(k)}=\left\{1-\left(1-\rho \eta_j\right)^k\right\} w_j^{\star}
+$$
+ 
+où $w_j=\mathbf{w}^{\mathrm{T}} \mathbf{u}_j$, et $\mathbf{u}_j$ et $\eta_j$ sont respectivement les vecteurs propres et les valeurs propres de $\mathbf{H}$, de sorte que
+ 
+$$
+\mathbf{H} \mathbf{u}_j=\eta_j \mathbf{u}_j
+$$
+ 
+Montrez que, lorsque $k \rightarrow \infty$, on obtient $\mathbf{w}^{(k)} \rightarrow \mathbf{w}^{\star}$ comme prévu, pourvu que $\left|1-\rho \eta_j\right|<1$.
+ 
+}
+
+\Answer{
+% Écrivez votre réponse ici
+}
+
+\end{exercise}
+ 
+
+% Q4
+\begin{exercise}[15]{
+\label{ex:convolutional-neural-networks}
+Réseaux de neurones convolutifs (Convolutional Neural Networks)
+\begin{enumerate}
+\item \textbf{(2 points)} Supposons qu'on ai un CNN avec les couches suivantes dans l'ordre exact, sans aucun composant supplémentaire entre elles :
+\begin{itemize}
+    \item Une couche convolutive $3\times 3$ avec un stride de $3$.
+    \item Une couche d'average pooling $2\times 2$ avec un stride de $2$.
+    \item Une couche convolutive $2\times 2$ avec un stride de $2$.
+\end{itemize}
+Donnez la couche unique exacte qui produirait la même sortie que cette séquence de couches. Écrivez une formule décrivant les poids de cette couche.
+
+\item \textbf{(4 points)} Étant donné le CNN défini par les couches ci-dessous, remplissez les dimensions de sortie et le nombre de paramètres à chaque couche dans le tableau suivant (Tableau \ref{tab:cnn-table}). Écrivez les dimensions au format $(H, W, C)$, où $H$, $W$, $C$ sont respectivement la hauteur, la largeur et le nombre de canaux. Sauf indication contraire, supposez un padding de 1 et un stride de 1 lorsque approprié. Les couches sont exprimées comme suit :
+\begin{itemize}
+    \item \textsc{Conv(H,C)} : Une couche de convolution avec des filtres de taille $H\times W$ avec $C$ canaux, avec les poids et biais appropriés.
+    \item \textsc{ReLU} : Activation ReLU.
+    \item \textsc{MaxPooling(N)} : Max pooling $N\times N$.
+    \item \textsc{FC(D)} : Une couche entièrement connectée (fully connected) avec $D$ sorties, avec les poids et biais appropriés.
+    \item \textsc{BatchNorm} : Batch normalization.
+    \item \textsc{Reshape} : Une couche d'aplatissement (flattening).
+\end{itemize}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l|c|c}
+    \toprule
+    Couche & Dimensions de sortie & Nombre de paramètres \\
+    \midrule
+    \textsc{Input} & $64\times 64 \times 3$ & $0$\\
+    \textsc{Conv(4,8)}, stride = 2 & & \\
+    \textsc{BatchNorm} & & \\
+    \textsc{ReLU} & & \\
+    \textsc{MaxPooling(2)} & & \\
+    \textsc{Conv(3,16)} & & \\
+    \textsc{BatchNorm} & & \\
+    \textsc{ReLU} & & \\
+    \textsc{MaxPooling(4)} & & \\
+    \textsc{Reshape} & & \\
+    \textsc{FC(10)} & & \\
+    \bottomrule
+    \end{tabular}
+    \caption{Tableau à remplir pour la partie 2.}
+    \label{tab:cnn-table}
+\end{table}
+
+\item \textbf{(2 points)} Dans la configuration ci-dessus, il existe des paramètres spécifiques qui peuvent être supprimés sans affecter la performance. Quels sont-ils et pourquoi peuvent-ils être supprimés ?
+
+\item \textbf{(2 points)} Remplissez le tableau suivant (Tableau \ref{tab:receptive-field-table}) en calculant le champ réceptif (receptive field) d'un seul pixel à la sortie de chaque couche. Vous pouvez supposer que chaque couche n'a qu'un seul canal et que le stride est de $1$ pour chaque couche.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l|c}
+    \toprule
+    Couche & Champ réceptif \\
+    \midrule
+    \textsc{Conv(5,1)} avec stride 3 & \\
+    \textsc{MaxPooling(2)} avec stride 2 & \\
+    \textsc{BatchNorm} & \\
+    \textsc{Conv(4,1)} avec stride 2 & \\
+    \textsc{MaxPooling(2)} avec stride 1 & \\
+    \textsc{Conv(3,1)} avec stride 1& \\
+    \bottomrule
+    \end{tabular}
+    \caption{Tableau à remplir pour la partie 4.}
+    \label{tab:receptive-field-table}
+\end{table}
+
+\item \textbf{(4 points)} Supposons que votre entrée est une image en noir et blanc composée uniquement de pixels ayant les valeurs 0 ou 1, où 1 représente le blanc et 0 représente le noir (supposez que l'image ne comporte qu'un seul canal). Concevez deux noyaux de convolution $3\times 3$ : un qui détecte les frontières verticales de gauche à droite allant du foncé au clair, et un autre qui détecte les frontières verticales de gauche à droite allant du clair au foncé. Vos noyaux doivent être aussi simples que possible (pour simplifier, restreignez les valeurs entre -1 et 1), avec une sortie de 1 autour des contours et 0 ailleurs. Expliquez quel élément de construction permet à vos noyaux de détecter ces frontières et non d'autres frontières (telles que les frontières horizontales).
+\end{enumerate}
+}
+
+\Answer{
+% Écrivez votre réponse ici
+}
+
+\end{exercise}
+
+\end{document}

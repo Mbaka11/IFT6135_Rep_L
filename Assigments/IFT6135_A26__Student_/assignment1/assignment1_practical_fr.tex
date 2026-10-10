@@ -1,0 +1,478 @@
+\documentclass[12pt]{article}
+
+\usepackage[canadien]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{hyperref}
+\usepackage{amsthm}
+
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\addtolength{\parskip}{5mm}
+
+\pagestyle{fancy}
+
+% --------------------
+% Exercise / solution
+% --------------------
+
+\newif\ifexercise
+\exercisetrue
+
+\newif\ifsolution
+\solutionfalse
+% Change to \solutiontrue for the instructor version.
+
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}
+\newtheorem{answer}{Réponse}
+
+\newcommand{\Exercise}[1]{%
+    \ifexercise
+        #1
+    \fi
+}
+
+\definecolor{answercolor}{rgb}{0.00,0.12,0.60}
+\newcommand{\Answer}[1]{%
+    \ifsolution
+        \color{answercolor}
+        \begin{answer}
+        #1
+        \end{answer}
+        \color{black}
+    \fi
+}
+
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+\begin{document}
+
+\fancyhead{}
+\fancyfoot{}
+
+\fancyhead[L]{
+    \begin{tabular}[b]{l}
+        IFT6135-A2026 \\
+        Prof: Aishwarya Agrawal
+    \end{tabular}
+}
+
+\fancyhead[R]{
+    \begin{tabular}[b]{r}
+        Devoir 1 -- Programmation \\
+        Perceptrons multicouches et réseaux convolutionnels
+    \end{tabular}
+}
+
+\fancyfoot[C]{- Ne pas distribuer -}
+
+\vspace{1cm}
+
+\textbf{Date de remise : 13 octobre 2026 à 23 h 00}
+
+\vspace{0.2cm}
+
+\underline{\textbf{Instructions}}
+
+\begin{itemize}
+\item \emph{Ce devoir est exigeant, commencez-le bien à l'avance !}
+\item \emph{Pour toutes les questions, montrez votre démarche.}
+\item \emph{La partie pratique vous a été fournie sous la forme d'un notebook Jupyter sur Google Colab ainsi que des modules  Python à compléter. Vous devez compléter les modules Python \texttt{.py} et le soumettre sur Gradescope pour l'évaluation automatique.}
+\item \emph{Vous devez également soumettre votre rapport (PDF) sur Gradescope. Votre rapport doit contenir les réponses aux Questions 1.2.1 à 1.2.3 ainsi qu'aux Questions 2.1.1 à 2.2.4. Vous devez également fournir votre notebook Google Colab avec les sorties déjà générées et accessible publiquement.}
+\item \emph{Les auxiliaires d'enseignement pour ce devoir sont \textbf{Achille Sowa} et \textbf{Guillermo Martin}.}
+\end{itemize}
+\vspace{0.2cm}
+
+\vspace{0.4cm}
+
+
+% ============================================================
+% Q1
+% Q1
+\begin{exercise}[20] \textbf{(Implémentation d'un MLP avec NumPy)}
+\Exercise{\label{ex:mlp}
+\noindent Cette question est divisée en deux parties. Dans la partie~1, vous implémenterez un
+perceptron multicouche (MLP) en utilisant uniquement \texttt{numpy}, ainsi que les éléments de
+base nécessaires pour le définir (couches, fonctions d'activation, fonctions de perte) et
+l'entraîner (optimiseur). Dans la partie~2, vous utiliserez les modèles implémentés dans la
+partie~1 pour effectuer de la prévision de séries temporelles sur un ensemble de jeux de
+données synthétiques.
+
+\textbf{Lien vers le code source :}
+\url{https://drive.google.com/file/d/1WxmlqjqMo1PwlZoV_-pojZGSVUZ2wrd9/view}
+
+Quatre fichiers sources vous sont fournis à compléter~:
+\begin{itemize}[nosep]
+    \item \texttt{nn.py} --- définit les blocs de base. Chaque bloc de ce
+    type est une sous-classe de la classe de base \texttt{Module}, et doit implémenter une
+    méthode \texttt{forward} et une méthode \texttt{backward}.
+    \item \texttt{model.py} --- assemble les éléments de \texttt{nn.py} pour former des modèles
+    complets.
+    \item \texttt{optim.py} --- implémente l'optimiseur utilisé pour entraîner les modèles (SGD).
+    \item \texttt{train.py} --- entraîne les différents modèles.
+\end{itemize}
+
+\noindent \textbf{Important~:} Ne modifiez pas le code fourni, \emph{sauf} à l'intérieur des
+zones délimitées par les balises \texttt{\#\#CODE} ... \texttt{\#\#END}.
+Tout le reste du code doit rester inchangé~: il est requis pour la correction automatique.
+
+
+
+
+\subsection*{Partie 1~: Eléments de base d'un réseau de neurones}
+
+
+\begin{enumerate}[label=\textbf{1.1.\arabic*}, leftmargin=*]
+
+    \item \textbf{Couche linéaire (2 points).} Implémentez la classe \texttt{Linear} dans
+    \texttt{nn.py}, calculant
+    \[
+        Z = W X + b
+    \]
+
+    \begin{enumerate}[label=(\alph*), nosep]
+        \item Implémentez la méthode \texttt{forward}.
+        \item Implémentez la méthode \texttt{backward}, qui retourne le gradient de la perte
+        par rapport à l'entrée de la couche, et qui stocke les gradients par rapport à $W$
+        et $b$.
+    \end{enumerate}
+
+    \item \textbf{Fonctions d'activation (3 points).} Implémentez les trois fonctions
+    d'activation suivantes en tant que sous-classes de \texttt{Module} dans \texttt{nn.py}~:
+    \begin{itemize}[nosep]
+        \item \texttt{ReLU}
+        \item \texttt{Sigmoid}
+        \item \texttt{Tanh}
+    \end{itemize}
+    Pour chaque classe, implémentez les méthodes  \texttt{forward} et 
+    \texttt{backward}.
+
+    \item \textbf{Fonctions de perte (2 points).} Implémentez les deux fonctions de perte
+    suivantes en tant que sous-classes de \texttt{Module} dans \texttt{nn.py}~:
+    \begin{itemize}[nosep]
+        \item \texttt{MSE} --- erreur quadratique moyenne.
+        \item \texttt{MAE} --- erreur absolue moyenne.
+    \end{itemize}
+    Pour chaque classe, implémentez à la fois le passage \texttt{forward} et le passage
+    \texttt{backward}.
+
+    \item \textbf{Assemblage des modèles (2 points).} À l'aide des éléments ci-dessus,
+    complétez \texttt{model.py} pour construire~:
+    \begin{enumerate}[label=(\alph*), nosep]
+        \item un MLP à 1 couche (une seule couche linéaire, sans couche cachée)~;
+        \item un MLP à 2 couches dont la fonction d'activation cachée est un argument
+        configurable du constructeur (\texttt{ReLU}, \texttt{Sigmoid}, ou \texttt{Tanh}).
+    \end{enumerate}
+
+    \item \textbf{Module d'optimisation (0,5 point).} Implémentez la méthode \texttt{SGD.step}
+    dans \texttt{optim.py} (voir le commentaire \texttt{TODO} dans le code pour la règle de
+    mise à jour exacte).
+
+    \item \textbf{Boucle d'entraînement (1,5 point).} Implémentez la boucle interne de la fonction \texttt{train\_model} dans \texttt{train.py} (voir le commentaire
+    \texttt{TODO} dans le code pour les étapes requises).
+\end{enumerate}
+
+
+
+\subsection*{Partie 2~: Prévision de séries temporelles}
+
+Dans cette partie, vous entraînerez les réseaux définis dans la partie~1 sur la tâche de
+prévision de séries temporelles.
+
+\subsection*{Contexte}
+
+Une série temporelle est une séquence d'observations enregistrées à intervalles réguliers sur
+une période donnée. Si une seule valeur est enregistrée à chaque intervalle, la série est
+dite \emph{univariée}~; si plusieurs valeurs sont enregistrées à chaque intervalle, elle est
+dite \emph{multivariée}. En recueillant $d$ valeurs à chacun des $N$ intervalles, on obtient
+une série temporelle $X \in \mathbb{R}^{d \times N}$.
+
+Étant donné un \emph{contexte} de longueur $h$, la tâche de prévision de séries temporelles
+consiste à prédire les $p$ valeurs suivantes $X_{t+1:t+p}$ à partir des $h$ valeurs
+précédentes $X_{t-h:t}$.
+
+\subsection*{Jeux de données}
+
+Un ensemble de jeux (Dataset) de données synthétiques univariés, ainsi qu'un chargeur de données (DataLoader)
+correspondant, vous sont fournis afin que vous puissiez les instancier facilement. Chaque jeu
+de données contient $11\,000$ points, répartis en ensembles d'entraînement, de validation et
+de test selon un ratio de $6:2:2$. Les séries de base sont~:
+\begin{itemize}[nosep]
+    \item \texttt{sine\_slow}, \texttt{sine\_fast}
+    \item \texttt{linear\_trend}
+    \item \texttt{quadra\_trend}
+    \item \texttt{expo\_trend}
+\end{itemize}
+ainsi qu'une version bruitée de chacune (bruit gaussien additif à différents rapports
+signal/bruit), pour un total de $20$ jeux de données.
+
+\subsection*{Modèles}
+
+Instanciez les cinq modèles suivants, tous construits à partir des éléments complétées dans la
+partie~1~:
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Nom} & \textbf{Architecture} & \textbf{Activation cachée} & \textbf{Perte} \\
+\midrule
+\texttt{MLP\_1}              & MLP à 1 couche & --- & MSE \\
+\texttt{MLP\_2\_ReLU}        & MLP à 2 couches & ReLU & MSE \\
+\texttt{MLP\_2\_Sigmoid\_MSE} & MLP à 2 couches & Sigmoid & MSE \\
+\texttt{MLP\_2\_Sigmoid\_MAE} & MLP à 2 couches & Sigmoid & MAE \\
+\texttt{MLP\_2\_Tanh}        & MLP à 2 couches & Tanh & MSE \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Notez que \texttt{MLP\_2\_Sigmoid\_MSE} et \texttt{MLP\_2\_Sigmoid\_MAE} partagent la
+même architecture et ne diffèrent que par la fonction de perte utilisée pour les entraîner, ce
+qui permet une comparaison directe entre MSE et MAE.
+
+\subsection*{Expériences}
+
+Entraînez chacun des cinq modèles ci-dessus sur chacun des $20$ jeux de données, pour chacune
+des configurations (longueur de contexte, horizon de prédiction) suivantes~:
+
+\begin{center}
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{Configuration} & \textbf{Longueur de contexte $h$} & \textbf{Horizon de prédiction $p$} \\
+\midrule
+1 & 96  & 336 \\
+2 & 336 & 336 \\
+3 & 336 & 720 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Le nombre d'époques, le taux d'apprentissage et les autres hyperparamètres d'entraînement sont
+fixés à leurs valeurs par défaut directement dans \texttt{train.py}. Aucune modification de
+ces paramètres n'est requise.
+Il suffit d'executer le module \texttt{train.py}
+
+\subsection*{Évaluation et analyse}
+
+\begin{enumerate}[label=\textbf{1.2.\arabic*}, leftmargin=*]
+
+\item \textbf{(3 points)} Pour chaque combinaison de jeu de données, de modèle et de
+configuration (contexte, horizon), rapportez le \texttt{MSE} et le \texttt{MAE} de test.
+
+Pour les jeux de données bruités, vous avez accès à la fois aux cibles bruitées et à la
+vérité terrain non bruitée sous-jacente. En plus des métriques ci-dessus, calculez
+\texttt{gt\_test\_mse} et \texttt{gt\_test\_mae}~: le MSE et le MAE des prédictions de chaque
+modèle évalués par rapport à la vérité terrain \emph{non bruitée}, plutôt que par rapport aux
+cibles bruitées. Ces métriques mesurent la capacité d'un modèle à retrouver le signal
+sous-jacent réel, c'est-à-dire sa qualité en tant que débruiteur.
+
+\item \textbf{(3 points)} À l'aide de \texttt{gt\_test\_mse} et \texttt{gt\_test\_mae},
+identifiez les modèles les plus performants et les moins performants sur chaque jeu de
+données, et tracez leurs prédictions. Ces résultats sont-ils cohérents avec ce à quoi vous
+vous attendriez en fonction de la profondeur et du choix de la fonction d'activation de chaque
+modèle~?
+
+\item \textbf{(3 points)}
+Pour les tâches ayant un horizon de prédiction $p=336$, deux longueurs de contexte sont
+disponibles~: 96 et 336. Rapportez le nombre de cas où chaque contexte donne la meilleure
+prédiction. Ces résultats sont-ils cohérents avec vos attentes initiales~?
+
+\end{enumerate}
+
+\textbf{Remise.}
+Soumettez \texttt{nn.py, model.py, optim.py, train.py},
+ainsi qu'un rapport PDF contenant l'analyse demandée. Le travail expérimental est évalué sur
+la base de sa justesse, de sa reproductibilité et de son interprétation, et non d'une
+précision cible.
+
+\end{exercise}}
+
+
+
+
+% ============================================================
+
+% Q2
+\begin{exercise}[20] \textbf{(Implémentation de couches CNN avec NumPy)}
+\Exercise{\label{ex:cnn}
+
+Implémentez des couches de convolution et de max-pooling, puis étudiez
+si un CNN peut reconnaître un motif local à des positions non vues.
+Cette question est indépendante de la Question~1.
+
+Complétez le notebook fourni, qui contient les gabarits de code,
+le générateur de données, le code d'entraînement et d'évaluation,
+ainsi que les tests publics.
+Des tests privés supplémentaires seront utilisés pour l'évaluation.
+
+Utilisez uniquement NumPy pour vos implémentations.
+
+\textbf{Lien vers le notebook :}
+\url{https://colab.research.google.com/drive/1W7q9f-DGgVm26YqKWFL6lcwdVhOC46h7}
+
+\subsection*{Partie 1 : Couches CNN (11 points)}
+
+Tous les tenseurs spatiaux utilisent l'ordre $(N,C,H,W)$. Suivez les
+spécifications du notebook concernant les types de données, les tailles
+d'entrée valides, les caches et les gradients.
+
+\begin{enumerate}[label=\textbf{2.1.\arabic*}, leftmargin=*]
+    \item \textbf{Convolution (6 points).}
+    Implémentez \texttt{conv2d\_forward} et
+    \texttt{conv2d\_backward}.
+    Utilisez des noyaux $3\times3$, un stride de $1$ et un pixel de
+    zero-padding de chaque côté. Prenez en charge plusieurs canaux
+    d'entrée et de sortie, avec un biais par canal de sortie.
+    Utilisez la corrélation croisée : ne retournez pas les filtres.
+    Retournez la sortie et le cache lors de la passe forward,
+    ainsi que les gradients par rapport à l'entrée, aux filtres et
+    aux biais lors de la passe backward.
+
+    \item \textbf{Max pooling (3 points).}
+    Implémentez \texttt{maxpool2d\_forward} et
+    \texttt{maxpool2d\_backward} avec des fenêtres $2\times2$,
+    un stride de $2$ et sans padding. Retournez la sortie et le cache
+    lors de la passe forward, ainsi que le gradient par rapport à
+    l'entrée lors de la passe backward. En cas d'égalité entre plusieurs
+    maxima, sélectionnez le premier selon l'ordre ligne par ligne et
+    propagez le gradient uniquement vers cette entrée.
+
+    \item \textbf{Dimensions et paramètres (1 point).}
+    Vérifiez les dimensions de sortie indiquées dans le tableau
+    ci-dessous. Calculez le nombre de paramètres entraînables de chaque
+    couche, biais inclus, ainsi que le nombre total de paramètres.
+    Identifiez les couches qui ne possèdent aucun paramètre entraînable.
+
+    \item \textbf{Vérifications numériques (1 point).}
+    Exécutez les tests fournis ainsi que les vérifications de gradient
+    par différences finies. Rapportez et sauvegardez les erreurs
+    numériques. Les différences finies servent uniquement à la
+    validation ; l'entraînement doit utiliser vos implémentations
+    analytiques de la passe backward.
+\end{enumerate}
+
+% \newpage
+\subsection*{Partie 2 : Généralisation à de nouvelles positions (9 points)}
+
+\textbf{Jeu de données.}
+Chaque image en niveaux de gris de taille $24\times24$ contient une
+grille de $6\times6$ tuiles de $4\times4$ pixels : 18 tuiles sombres
+d'intensité $0.2$ et 18 tuiles claires d'intensité $0.8$. Tous les
+pixels d'une même tuile ont la même valeur.
+Les images positives (étiquette $1$) contiennent exactement un bloc
+$2\times2$ de tuiles voisines qui sont toutes sombres ou toutes
+claires. Les images négatives (étiquette $0$) ne contiennent aucun
+bloc de ce type. Les blocs ne dépassent pas les limites de l'image.
+
+Les partitions fournies contiennent 2048 images d'entraînement et
+512 images chacune pour la validation, le test avec positions vues
+et le test avec positions non vues.
+Toutes les partitions sont équilibrées entre les classes et contiennent
+des arrangements de tuiles distincts.
+Les exemples positifs sont également équilibrés selon la position et
+le type du bloc.
+Une position correspond à la coordonnée
+$(\mathrm{ligne},\mathrm{colonne})$, indexée à partir de zéro, de la
+tuile supérieure gauche du bloc. Les exemples positifs d'entraînement,
+de validation et du test avec positions vues utilisent $(1,1)$ ou
+$(1,3)$ ; les exemples positifs du test avec positions non vues
+utilisent $(3,1)$ ou $(3,3)$. Les exemples négatifs suivent la même
+règle d'absence de bloc dans toutes les partitions. Les jeux de test
+contiennent des images différentes et ne correspondent pas à des
+translations appariées.
+Seules les images, et non les métadonnées décrivant l'arrangement,
+sont fournies au modèle.
+
+
+\begin{enumerate}[label=\textbf{2.2.\arabic*}, leftmargin=*]
+    \item \textbf{Construction du CNN (2 points).}
+    Complétez \texttt{build\_model(seed)} afin de retourner un nouveau
+    modèle \texttt{Sequential} avec l'architecture ci-dessous.
+    Utilisez l'initialisation fournie. Les deux convolutions et la
+    couche linéaire incluent des biais. Les dimensions de sortie
+    n'incluent pas l'axe du batch ; le modèle retourne deux logits
+    bruts, sans softmax final.
+
+    \begin{center}
+    \begin{tabular}{lll}
+    \toprule
+    Couche & Configuration & Dimension de sortie \\
+    \midrule
+    Entrée & Niveaux de gris & $1\times24\times24$ \\
+    Convolution + ReLU & 8 filtres, $3\times3$, stride 1, padding 1
+        & $8\times24\times24$ \\
+    Max pooling & $2\times2$, stride 2, sans padding
+        & $8\times12\times12$ \\
+    Convolution + ReLU & 16 filtres, $3\times3$, stride 1, padding 1
+        & $16\times12\times12$ \\
+    Global max pooling & Maximum sur les deux axes spatiaux & $16$ \\
+    Linéaire & $16\rightarrow2$, avec biais & $2$ \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+
+    \item \textbf{Entraînement et positions vues (3 points).}
+    Entraînez le modèle une seule fois pendant 30 époques avec une
+    taille de batch de 64 et Adam avec un taux d'apprentissage de
+    $0.003$. Conservez toutes les seeds, l'initialisation et les autres
+    paramètres tels qu'ils sont fournis dans le notebook ; n'ajoutez
+    aucune couche, augmentation de données ou recherche
+    d'hyperparamètres.
+    Sélectionnez le checkpoint ayant la plus faible cross-entropy de
+    validation, en choisissant l'époque la plus ancienne en cas
+    d'égalité. N'utilisez aucun des deux jeux de test pour la sélection.
+    Tracez la loss et l'accuracy d'entraînement et de validation,
+    rapportez l'époque sélectionnée et évaluez l'accuracy sur le jeu
+    de test avec positions vues.
+
+    \item \textbf{Positions non vues : sans réentraînement (2 points).}
+    Évaluez le même checkpoint sur le jeu de test avec positions non
+    vues sans mettre à jour les paramètres. Rapportez l'accuracy, le
+    rappel de la classe positive et une matrice de confusion pour
+    chacun des deux jeux de test, en utilisant les fonctions
+    d'évaluation fournies. Utilisez les vraies étiquettes comme lignes
+    de la matrice et les prédictions comme colonnes.
+
+    \item \textbf{Interprétation (2 points).}
+    Montrez au moins deux exemples positifs de chaque jeu de test,
+    avec leurs étiquettes, prédictions, positions du bloc et
+    identifiants d'exemple.
+    Discutez d'une erreur si une erreur se produit ; sinon, indiquez
+    qu'aucune erreur n'a été observée.
+    Expliquez la comparaison entre positions vues et non vues en
+    termes de champs réceptifs locaux, de partage des poids et de
+    global max pooling. Distinguez la généralisation empirique d'une
+    garantie d'invariance par translation, en tenant compte du
+    zero-padding, du pooling avec stride 2 et du fait que les deux
+    jeux de test contiennent des images échantillonnées indépendamment.
+    Ne supposez pas que les performances doivent diminuer.
+\end{enumerate}
+
+\textbf{Remise.}
+Soumettez \texttt{cnn\_layers.py}, \texttt{cnn.py}, votre notebook
+exécuté, un rapport PDF contenant les calculs demandés et les résultats
+expérimentaux, ainsi que l'archive exportée
+\texttt{q2\_results.zip}. La partie expérimentale est évaluée selon
+la justesse, la reproductibilité et l'interprétation, et non selon
+une précision cible.
+
+
+\Answer{
+% Écrire votre réponse ici
+}
+\end{exercise}}
+
+\end{document}
