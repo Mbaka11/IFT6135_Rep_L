@@ -26,7 +26,8 @@ htmlcov/
 # Jupyter temporary files
 .ipynb_checkpoints/
 
-# LaTeX build files (keep source documents and PDFs)
+# LaTeX build files (keep source documents and supplied PDFs)
+latex-build/
 *.aux
 *.bbl
 *.bcf
