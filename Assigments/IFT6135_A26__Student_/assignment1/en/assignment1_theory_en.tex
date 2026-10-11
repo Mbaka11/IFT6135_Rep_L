@@ -215,21 +215,9 @@ compute the numerical values of $b^{\text{new}}_1, W^{\text{new}}_1, b^{\text{ne
 \begin{enumerate}[label=\textbf{(\arabic*)}, leftmargin=*, itemsep=1em]
     \item \textbf{Forward pass.}
 
-    Using the given parameters and $\vect{x}=[1,1]^\top$,
-    \begin{align*}
-        \vect{z}^{(1)}
-            &= W_1\vect{x}+\vect{b}_1
-             = [1+0,\;1+1,\;0+1]^\top
-             = [1,2,1]^\top, \\
-        \vect{h}^{(1)}
-            &= \relu(\vect{z}^{(1)})=[1,2,1]^\top, \\
-        z^{(2)}
-            &= W_2^\top\vect{h}^{(1)}+b_2
-             = 1\cdot1+(-1)\cdot2+1\cdot1+0=0, \\
-        \hat{y}
-            &= \sigmoid(0)=\frac{1}{1+e^{-0}}=\frac{1}{2}=0.5.
-    \end{align*}
     All hidden pre-activations are positive, so ReLU leaves them unchanged.
+    The output pre-activation is $z^{(2)}=1\cdot1-1\cdot2+1\cdot1=0$,
+    giving the following values:
 
     \begin{center}
     \renewcommand{\arraystretch}{1.4}
@@ -247,39 +235,23 @@ compute the numerical values of $b^{\text{new}}_1, W^{\text{new}}_1, b^{\text{ne
 
     \item \textbf{Derivative of the binary cross-entropy loss.}
 
-    Differentiating the loss with respect to the prediction gives
-    \[
-        \pd{L}{\hat{y}}=-\frac{y}{\hat{y}}+\frac{1-y}{1-\hat{y}}.
-    \]
-    For the sigmoid, $\hat{y}=(1+e^{-z^{(2)}})^{-1}$. Applying the chain rule
-    to the reciprocal and the exponential,
-    \begin{align*}
-        \pd{\hat{y}}{z^{(2)}}
-            &= -(1+e^{-z^{(2)}})^{-2}(-e^{-z^{(2)}}) \\
-            &= \frac{e^{-z^{(2)}}}{(1+e^{-z^{(2)}})^2} \\
-            &= \underbrace{\frac{1}{1+e^{-z^{(2)}}}}_{\hat{y}}
-               \underbrace{\frac{e^{-z^{(2)}}}{1+e^{-z^{(2)}}}}_{1-\hat{y}} \\
-            &= \hat{y}(1-\hat{y}).
-    \end{align*}
-    By the chain rule,
+    Using the sigmoid derivative $\pd{\hat{y}}{z^{(2)}}=\hat{y}(1-\hat{y})$,
+    the chain rule gives
     \begin{align*}
         \pd{L}{z^{(2)}}
             &= \pd{L}{\hat{y}}\pd{\hat{y}}{z^{(2)}} \\
             &= \left(-\frac{y}{\hat{y}}+\frac{1-y}{1-\hat{y}}\right)
                \hat{y}(1-\hat{y}) \\
-            &= -y(1-\hat{y})+(1-y)\hat{y} \\
-            &= \hat{y}-y.
+            &= -y(1-\hat{y})+(1-y)\hat{y}=\hat{y}-y.
     \end{align*}
-    For the given sample, $\hat{y}=\frac{1}{2}$ and $y=1$, hence
+    For $\hat{y}=\frac12$ and $y=1$,
     \[
-        \boxed{\pd{L}{z^{(2)}}=\frac{1}{2}-1=-\frac{1}{2}=-0.5}.
+        \boxed{\pd{L}{z^{(2)}}=-\frac12=-0.5}.
     \]
 
     \item \textbf{Analytical gradients using the chain rule.}
 
-    We expand the chain rule component-wise so that each factor is scalar,
-    then collect the results into column-vector or matrix gradients.
-    From part (2), $\pd{L}{z^{(2)}}=\hat{y}-y$. For $i=1,2,3$, define
+    From part (2), $\pd{L}{z^{(2)}}=\hat{y}-y$. For $i=1,2,3$, let
     \[
         r_i=\relu'(z_i^{(1)})=
         \begin{cases}
@@ -288,77 +260,60 @@ compute the numerical values of $b^{\text{new}}_1, W^{\text{new}}_1, b^{\text{ne
         \end{cases}
         \qquad \vect{r}=[r_1,r_2,r_3]^\top,
     \]
-    using the given convention $\relu'(0)=0$.
-    Each first-layer parameter $b_{1,i}$ or $W_{1,ij}$ directly affects
-    only the pre-activation of hidden neuron $i$.
+    with the given convention $\relu'(0)=0$.
+    Each $b_{1,i}$ or $W_{1,ij}$ directly affects only $z_i^{(1)}$.
 
     \begin{enumerate}[label=\textbf{(\alph*)}, leftmargin=*, itemsep=1em]
         \item \textbf{Output bias $b_2$.}
-        \begin{align*}
+        \[
             \pd{L}{b_2}
-                &= \pd{L}{z^{(2)}}\pd{z^{(2)}}{b_2} \\
-                &= (\hat{y}-y)\cdot1 \\
-                &= \boxed{\hat{y}-y}.
-        \end{align*}
+            =\pd{L}{z^{(2)}}\pd{z^{(2)}}{b_2}
+            =(\hat{y}-y)\cdot1=\boxed{\hat{y}-y}.
+        \]
 
         \item \textbf{Output weights $W_2$.}
-        For each component $W_{2,i}$,
-        \begin{align*}
-            \pd{L}{W_{2,i}}
-                &= \pd{L}{z^{(2)}}\pd{z^{(2)}}{W_{2,i}} \\
-                &= (\hat{y}-y)h_i^{(1)}.
-        \end{align*}
-        Stacking the three components gives
         \[
-            \boxed{\pd{L}{W_2}=(\hat{y}-y)\vect{h}^{(1)}}
-            \quad\text{(shape $3\times1$).}
+            \pd{L}{W_{2,i}}
+            =\pd{L}{z^{(2)}}\pd{z^{(2)}}{W_{2,i}}
+            =(\hat{y}-y)h_i^{(1)},
+            \qquad
+            \boxed{\pd{L}{W_2}=(\hat{y}-y)\vect{h}^{(1)}}.
         \]
 
         \item \textbf{Hidden activations $\vect{h}^{(1)}$.}
-        \begin{align*}
-            \pd{L}{h_i^{(1)}}
-                &= \pd{L}{z^{(2)}}\pd{z^{(2)}}{h_i^{(1)}} \\
-                &= (\hat{y}-y)W_{2,i}.
-        \end{align*}
-        Therefore,
         \[
-            \boxed{\pd{L}{\vect{h}^{(1)}}=(\hat{y}-y)W_2}
-            \quad\text{(shape $3\times1$).}
+            \pd{L}{h_i^{(1)}}
+            =\pd{L}{z^{(2)}}\pd{z^{(2)}}{h_i^{(1)}}
+            =(\hat{y}-y)W_{2,i},
+            \qquad
+            \boxed{\pd{L}{\vect{h}^{(1)}}=(\hat{y}-y)W_2}.
         \]
 
         \item \textbf{Hidden biases $\vect{b}_1$.}
-        Expanding the dependence of $h_i^{(1)}$ on $b_{1,i}$ through $z_i^{(1)}$,
         \begin{align*}
             \pd{L}{b_{1,i}}
-                &= \pd{L}{z^{(2)}}\pd{z^{(2)}}{h_i^{(1)}}
-                   \pd{h_i^{(1)}}{b_{1,i}} \\
-                &= \pd{L}{z^{(2)}}\pd{z^{(2)}}{h_i^{(1)}}
-                   \pd{h_i^{(1)}}{z_i^{(1)}}\pd{z_i^{(1)}}{b_{1,i}} \\
-                &= (\hat{y}-y)W_{2,i}r_i\cdot1 \\
-                &= (\hat{y}-y)W_{2,i}r_i.
+                &=\pd{L}{z^{(2)}}\pd{z^{(2)}}{h_i^{(1)}}
+                  \pd{h_i^{(1)}}{z_i^{(1)}}\pd{z_i^{(1)}}{b_{1,i}} \\
+                &=(\hat{y}-y)W_{2,i}r_i.
         \end{align*}
-        In vector form,
+        Thus
         \[
-            \boxed{\pd{L}{\vect{b}_1}=(\hat{y}-y)(W_2\odot\vect{r})}
-            \quad\text{(shape $3\times1$),}
+            \boxed{\pd{L}{\vect{b}_1}=(\hat{y}-y)(W_2\odot\vect{r})},
         \]
         where $\odot$ denotes element-wise multiplication.
 
         \item \textbf{First-layer weights $W_1$.}
-        For $i=1,2,3$ and $j=1,2$,
+        For $j=1,2$,
         \begin{align*}
             \pd{L}{W_{1,ij}}
-                &= \pd{L}{z^{(2)}}\pd{z^{(2)}}{h_i^{(1)}}
-                   \pd{h_i^{(1)}}{W_{1,ij}} \\
-                &= \pd{L}{z^{(2)}}\pd{z^{(2)}}{h_i^{(1)}}
-                   \pd{h_i^{(1)}}{z_i^{(1)}}\pd{z_i^{(1)}}{W_{1,ij}} \\
-                &= (\hat{y}-y)W_{2,i}r_i x_j.
+                &=\pd{L}{z^{(2)}}\pd{z^{(2)}}{h_i^{(1)}}
+                  \pd{h_i^{(1)}}{z_i^{(1)}}\pd{z_i^{(1)}}{W_{1,ij}} \\
+                &=(\hat{y}-y)W_{2,i}r_i x_j.
         \end{align*}
-        Thus the matrix gradient is
+        Hence
         \[
             \boxed{\pd{L}{W_1}=(\hat{y}-y)(W_2\odot\vect{r})\vect{x}^\top}.
         \]
-        This is an outer product with shape $(3\times1)(1\times2)=3\times2$.
     \end{enumerate}
 
     \item \textbf{Numerical gradients.}\nopagebreak[4]
@@ -391,72 +346,47 @@ compute the numerical values of $b^{\text{new}}_1, W^{\text{new}}_1, b^{\text{ne
 
     \item \textbf{One gradient-descent update.}\nopagebreak[4]
 
-    With $\eta=\frac12$, apply
-    $\theta^{\mathrm{new}}=\theta^{\mathrm{old}}-\eta\,\partial L/\partial\theta$.
-    All four updates use the gradients evaluated at the initial parameters:
-    \[
+    With $\eta=\frac12$, use
+    $\theta^{\mathrm{new}}=\theta^{\mathrm{old}}-\frac12\pd{L}{\theta}$.
+    All four updates use the initial gradients from part (4):
+    \begin{align*}
         \vect{b}_1^{\mathrm{new}}
-        =\begin{bmatrix}0\\0\\0\end{bmatrix}
-         -\frac12\begin{bmatrix}-\frac12\\\frac12\\-\frac12\end{bmatrix}
-        =\boxed{\begin{bmatrix}\frac14\\-\frac14\\\frac14\end{bmatrix}}.
-    \]
-    \[
-        W_1^{\mathrm{new}}
-        =\begin{bmatrix}1&0\\1&1\\0&1\end{bmatrix}
-         -\frac12\begin{bmatrix}
-            -\frac12&-\frac12\\
-            \frac12&\frac12\\
-            -\frac12&-\frac12
-         \end{bmatrix}
-        =\boxed{\begin{bmatrix}
-            \frac54&\frac14\\
-            \frac34&\frac34\\
-            \frac14&\frac54
-        \end{bmatrix}}.
-    \]
-    \[
-        b_2^{\mathrm{new}}=0-\frac12\left(-\frac12\right)=\boxed{\frac14}.
-    \]
-    \[
-        W_2^{\mathrm{new}}
-        =\begin{bmatrix}1\\-1\\1\end{bmatrix}
-         -\frac12\begin{bmatrix}-\frac12\\-1\\-\frac12\end{bmatrix}
-        =\boxed{\begin{bmatrix}\frac54\\-\frac12\\\frac54\end{bmatrix}}.
-    \]
+            &=\boxed{\begin{bmatrix}\frac14\\-\frac14\\\frac14\end{bmatrix}},
+        &W_1^{\mathrm{new}}
+            &=\boxed{\begin{bmatrix}
+                \frac54&\frac14\\
+                \frac34&\frac34\\
+                \frac14&\frac54
+            \end{bmatrix}},\\
+        b_2^{\mathrm{new}}
+            &=0-\frac12\left(-\frac12\right)=\boxed{\frac14},
+        &W_2^{\mathrm{new}}
+            &=\boxed{\begin{bmatrix}\frac54\\-\frac12\\\frac54\end{bmatrix}}.
+    \end{align*}
 
     \item \textbf{Prediction after the update.}\nopagebreak[4]
 
-    For the same input $\vect{x}=[1,1]^\top$, the updated first layer gives
+    For $\vect{x}=[1,1]^\top$,
     \[
         \vect{z}^{(1),\mathrm{new}}
-        =\begin{bmatrix}
-            \frac54&\frac14\\
-            \frac34&\frac34\\
-            \frac14&\frac54
-         \end{bmatrix}\begin{bmatrix}1\\1\end{bmatrix}
-         +\begin{bmatrix}\frac14\\-\frac14\\\frac14\end{bmatrix}
+        =W_1^{\mathrm{new}}\vect{x}+\vect{b}_1^{\mathrm{new}}
         =\begin{bmatrix}\frac74\\\frac54\\\frac74\end{bmatrix}.
     \]
     All entries are positive, so
-    $\vect{h}^{(1),\mathrm{new}}=\vect{z}^{(1),\mathrm{new}}$.
-    Consequently,
-    \begin{align*}
-        z^{(2),\mathrm{new}}
-            &= (W_2^{\mathrm{new}})^\top\vect{h}^{(1),\mathrm{new}}
-               +b_2^{\mathrm{new}}\\
-            &= \frac54\cdot\frac74-\frac12\cdot\frac54
-               +\frac54\cdot\frac74+\frac14\\
-            &= \boxed{4}.
-    \end{align*}
-    Using the prescribed approximation $e\approx3$,
+    $\vect{h}^{(1),\mathrm{new}}=\vect{z}^{(1),\mathrm{new}}$. The output is
     \[
-        \hat{y}^{\mathrm{new}}=\sigma(4)=\frac{1}{1+e^{-4}}
+        z^{(2),\mathrm{new}}
+        =\frac54\cdot\frac74-\frac12\cdot\frac54
+         +\frac54\cdot\frac74+\frac14=\boxed{4}.
+    \]
+    Using $e\approx3$,
+    \[
+        \hat{y}^{\mathrm{new}}=\sigma(4)
         \approx\frac{1}{1+3^{-4}}
         =\boxed{\frac{81}{82}\approx0.9878}.
     \]
-    The predicted probability increases from $0.5$ to approximately $0.9878$,
-    moving closer to the true label $y=1$. Thus the update moves the prediction
-    in the right direction.
+    The probability increases from $0.5$ to about $0.9878$, moving toward
+    the true label $y=1$, so the update is in the right direction.
 \end{enumerate}
 }
 
@@ -516,89 +446,53 @@ Consider an $L$-layer MLP trained for a multi-class classification task. Let $x 
         \]
         If layer $l+1$ is hidden, its identity activation leaves this map unchanged.
 
-        \item Repeatedly applying part (a), the full network's logits have the form
-        \[
-            \vect{z}=W_{\mathrm{eff}}\vect{x}+\vect{b}_{\mathrm{eff}},
-            \qquad W_{\mathrm{eff}}=W^{(L)}W^{(L-1)}\cdots W^{(1)}.
-        \]
-        Applying the same softmax gives
-        $\hat{\vect{y}}=\operatorname{softmax}(W_{\mathrm{eff}}\vect{x}
-        +\vect{b}_{\mathrm{eff}})$, exactly as a single affine layer followed
-        by softmax. Hence the $L$-layer network has no greater representational
-        capacity than a single-layer linear classifier.
+        \item Repeatedly applying part (a), the layers collapse into a single
+        affine map from input to logits. Keeping the final softmax unchanged
+        gives the same class probabilities. Thus the multilayer network has
+        no greater representational capacity than a single-layer linear classifier.
     \end{enumerate}
 
     \item \textbf{Sigmoid activations.}
     \begin{enumerate}[label=\textbf{(\alph*)}, leftmargin=*]
-        \item The sigmoid derivative is
-        $g'(a)=\sigma(a)(1-\sigma(a))$.
-        Let $p=\sigma(a)\in(0,1)$, so $g'(a)=p(1-p)>0$.
-        Completing the square,
+        \item Let $p=\sigma(a)\in(0,1)$. Since $g'(a)=p(1-p)$,
         \[
-            \left(p-\frac12\right)^2
-            =p^2-2p\left(\frac12\right)+\frac14
-            =p^2-p+\frac14.
+            |g'(a)|=p(1-p)=\frac14-\left(p-\frac12\right)^2\leq\frac14.
         \]
-        Hence $p^2-p=(p-\frac12)^2-\frac14$, and negating gives
-        \begin{align*}
-            |g'(a)|=p-p^2
-                &= -\left[\left(p-\frac12\right)^2-\frac14\right]\\
-                &= \frac14-\left(p-\frac12\right)^2\\
-                &\leq\frac14.
-        \end{align*}
-        Equality holds when $p=\frac12$, which occurs at $a=0$. Therefore,
-        \[
-            \boxed{\max_{a\in\mathbb R}|g'(a)|=\frac14},
-            \qquad\text{attained at }a=0.
-        \]
+        Equality holds at $p=\frac12$, i.e. $a=0$, so the maximum is
+        $\boxed{\frac14}$.
 
-        \item For hidden layers, let
-        $\delta^{(l)}=\partial\mathcal L/\partial a^{(l)}$.
-        For a scalar hidden-layer transition, $1\leq l\leq L-2$,
-        the chain rule gives
+        \item Let $\delta^{(l)}=\pd{\mathcal L}{a^{(l)}}$ for hidden layers,
+        and $G=\|\nabla_{\vect{z}}\mathcal L\|_2$, where $\vect{z}$ is the
+        output-logit vector. For $1\leq l\leq L-2$, the chain rule gives
         \begin{align*}
             \delta^{(l)}
-                &= \pd{\mathcal L}{a^{(l+1)}}
-                   \pd{a^{(l+1)}}{h^{(l)}}\pd{h^{(l)}}{a^{(l)}}\\
-                &= \delta^{(l+1)}w^{(l+1)}\sigma'(a^{(l)}).
+                &=\pd{\mathcal L}{a^{(l+1)}}
+                  \pd{a^{(l+1)}}{h^{(l)}}\pd{h^{(l)}}{a^{(l)}}\\
+                &=\delta^{(l+1)}w^{(l+1)}\sigma'(a^{(l)}).
         \end{align*}
-        To include the multiclass output head, set
-        $\delta^{(L)}=\nabla_{\vect{z}}\mathcal L$ and
-        $G=\|\delta^{(L)}\|_2$, where $\vect{z}$ denotes the output logits.
-        In column-gradient notation the same backward transition is
-        \[
-            \delta^{(l)}=\sigma'(a^{(l)})(W^{(l+1)})^\top\delta^{(l+1)},
-            \qquad 1\leq l\leq L-1.
-        \]
-        For scalar hidden links, $\|W^{(l+1)}\|_2=|w^{(l+1)}|$.
-        Using $|\sigma'(a)|\leq\frac14$ and the weight-norm bound,
-        \[
-            \|\delta^{(l)}\|_2
-            \leq |\sigma'(a^{(l)})|\,\|W^{(l+1)}\|_2
-                 \|\delta^{(l+1)}\|_2
-            \leq\frac{W_{\max}}4\|\delta^{(l+1)}\|_2.
-        \]
-        Iterating over the $L-1$ hidden activations therefore gives
+        Using $|\sigma'(a)|\leq\frac14$ and $|w^{(l+1)}|\leq W_{\max}$,
+        this implies $|\delta^{(l)}|\leq\frac{W_{\max}}4|\delta^{(l+1)}|$.
+        For the multiclass output head, the given matrix-norm bound yields
         \begin{align*}
-            \left|\pd{\mathcal L}{a^{(1)}}\right|
-                &\leq G\prod_{l=1}^{L-1}
-                   \left(\|W^{(l+1)}\|_2\,|\sigma'(a^{(l)})|\right)\\
-                &\leq\boxed{G\left(\frac{W_{\max}}4\right)^{L-1}}.
+            |\delta^{(L-1)}|
+                &=\left|\sigma'(a^{(L-1)})(W^{(L)})^\top
+                   \nabla_{\vect{z}}\mathcal L\right|\\
+                &\leq\frac14\|W^{(L)}\|_2G
+                 \leq\frac{W_{\max}}4G.
         \end{align*}
-        The exponent is $L-1$ because the $L$ layers include the output-logit
-        layer; its softmax/loss derivatives are already included in $G$.
+        Iterating these bounds over the $L-1$ hidden sigmoid activations gives
+        \[
+            \boxed{\left|\pd{\mathcal L}{a^{(1)}}\right|
+            \leq G\left(\frac{W_{\max}}4\right)^{L-1}}.
+        \]
+        The output softmax and loss derivatives are already included in $G$.
 
-        \item Let $q=W_{\max}/4$. For a bounded output-loss gradient,
-        the bound $Gq^{L-1}$ tends to zero exponentially with depth when $q<1$.
-        Thus a sufficient condition is
+        \item With $G$ bounded independently of depth, as for softmax
+        cross-entropy, the bound decreases exponentially when
         \[
             \boxed{W_{\max}<4}.
         \]
-        For single-sample softmax cross-entropy with a one-hot target,
-        $G=\|\hat{\vect{y}}-\vect{y}\|_2\leq\sqrt2$, so the output gradient
-        is uniformly bounded. This condition is sufficient, not necessary:
-        sigmoid saturation can still cause vanishing gradients when
-        $W_{\max}\geq4$.
+        This condition is sufficient, not necessary.
     \end{enumerate}
 
     \item \textbf{ReLU and alternative activations.}
@@ -612,66 +506,28 @@ Consider an $L$-layer MLP trained for a multi-class classification task. Let $x 
             \end{cases}}
         \]
 
-        \item Let $\vect{w}_i$ contain the incoming weights of neuron $i$
-        in column form, so
+        \item Let $\vect{w}_i$ be the incoming weight vector, with
         $a_i^{(l)}=\vect{w}_i^\top\vect{h}^{(l-1)}+b_i^{(l)}$.
-        Set $c_i=\partial\mathcal L/\partial h_i^{(l)}$.
-        For each weight component, the chain rule gives
-        \begin{align*}
-            \pd{\mathcal L}{w_{i,j}}
-                &= \pd{\mathcal L}{h_i^{(l)}}
-                   \pd{h_i^{(l)}}{a_i^{(l)}}\pd{a_i^{(l)}}{w_{i,j}}\\
-                &= c_i\,g'(a_i^{(l)})\,h_j^{(l-1)}.
-        \end{align*}
-        If $a_i^{(l)}\leq0$, the local ReLU derivative is zero. Therefore,
+        If $a_i^{(l)}\leq0$, then $g'(a_i^{(l)})=0$ using part (a)'s
+        convention, so
         \[
             \nabla_{\vect{w}_i}\mathcal L
-            =c_i\,g'(a_i^{(l)})\,\vect{h}^{(l-1)}
-            =\boxed{\vect{0}_{d_{l-1}}}.
+            =\pd{\mathcal L}{h_i^{(l)}}g'(a_i^{(l)})\,\vect{h}^{(l-1)}
+            =\boxed{\vect{0}}.
         \]
-        Equivalently, row $i$ of the weight-gradient matrix is zero for this
-        sample; this does not require the entire layer's gradient to vanish.
+        This holds for this sample and does not imply that the entire
+        layer's gradient is zero.
 
-        \item \textbf{LeakyReLU.} For a fixed $0<\alpha<1$, define
-        \[
-            g_{\mathrm{leaky}}(a)=\begin{cases}
-                a,&a\geq0,\\
-                \alpha a,&a<0.
-            \end{cases}
-        \]
-        On the strictly negative branch, $g'_{\mathrm{leaky}}(a)=\alpha>0$,
-        so the incoming-weight gradient becomes
-        $c_i\alpha\vect{h}^{(l-1)}$ rather than being forced to zero.
-        This avoids ReLU's flat negative region, although a small $\alpha$
-        still attenuates gradients. A convention is needed at the kink;
-        with fixed $\alpha$, no additional trainable parameters are required.
+        \item \textbf{LeakyReLU.} For a fixed $0<\alpha<1$, negative inputs
+        use $g(a)=\alpha a$, so $g'(a)=\alpha>0$ rather than zero. Positive
+        inputs are unchanged, and no trainable parameters are added.
 
-        \textbf{Maxout.} Instead of one affine pre-activation followed by ReLU,
-        a unit computes $m\geq2$ learned affine pieces and selects their maximum:
-        \[
-            s_{i,r}=\vect{v}_{i,r}^\top\vect{h}^{(l-1)}+\beta_{i,r},
-            \qquad h_i^{(l)}=\max_{1\leq r\leq m}s_{i,r}.
-        \]
-        At a unique winning piece $r_*$,
-        \[
-            \pd{h_i^{(l)}}{s_{i,r}}=\begin{cases}
-                1,&r=r_*,\\
-                0,&r\neq r_*.
-            \end{cases}
-        \]
-        Thus the winning piece receives
-        $\nabla_{\vect{v}_{i,r_*}}\mathcal L=c_i\vect{h}^{(l-1)}$,
-        while losing pieces receive zero gradient for that sample.
-        The local activation-input gradient is $\vect{v}_{i,r_*}$,
-        which can be nonzero even when the winning output is negative.
-        Unlike ReLU, there is no mandatory flat zero branch; ties require
-        a winner/subgradient convention.
-
-        Compared with inexpensive LeakyReLU and its fixed slopes, Maxout
-        learns a more flexible piecewise-affine function but needs $m$ sets
-        of weights and biases per unit and more computation. Both can
-        mitigate inactive-ReLU behavior, but neither guarantees nonzero
-        gradients everywhere, for example when $c_i=0$.
+        \textbf{Maxout.} A unit takes the maximum of several learned affine
+        functions. With a unique winner, gradients are routed to that piece
+        even when its output is negative; the other pieces receive none for
+        that sample. Maxout is more flexible than LeakyReLU but requires more
+        weights, biases and computation. Both mitigate inactive-ReLU behavior,
+        but neither guarantees nonzero gradients everywhere.
     \end{enumerate}
 \end{enumerate}
 }
@@ -831,16 +687,16 @@ Give the exact single layer that would produce the same output as this sequence 
     Layer & Output Dimensions & Number of Parameters \\
     \midrule
     \textsc{Input} & $64\times 64 \times 3$ & $0$\\
-    \textsc{Conv(4,8)}, stride = 2 & & \\
-    \textsc{BatchNorm} & & \\
-    \textsc{ReLU} & & \\
-    \textsc{MaxPooling(2)} & & \\
-    \textsc{Conv(3,16)} & & \\
-    \textsc{BatchNorm} & & \\
-    \textsc{ReLU} & & \\
-    \textsc{MaxPooling(4)} & & \\
-    \textsc{Reshape} & & \\
-    \textsc{FC(10)} & & \\
+    \textsc{Conv(4,8)}, stride = 2 & \textcolor{blue}{$(32,32,8)$} & \textcolor{blue}{$392$} \\
+    \textsc{BatchNorm} & \textcolor{blue}{$(32,32,8)$} & \textcolor{blue}{$16$} \\
+    \textsc{ReLU} & \textcolor{blue}{$(32,32,8)$} & \textcolor{blue}{$0$} \\
+    \textsc{MaxPooling(2)} & \textcolor{blue}{$(16,16,8)$} & \textcolor{blue}{$0$} \\
+    \textsc{Conv(3,16)} & \textcolor{blue}{$(16,16,16)$} & \textcolor{blue}{$1168$} \\
+    \textsc{BatchNorm} & \textcolor{blue}{$(16,16,16)$} & \textcolor{blue}{$32$} \\
+    \textsc{ReLU} & \textcolor{blue}{$(16,16,16)$} & \textcolor{blue}{$0$} \\
+    \textsc{MaxPooling(4)} & \textcolor{blue}{$(4,4,16)$} & \textcolor{blue}{$0$} \\
+    \textsc{Reshape} & \textcolor{blue}{$(1,1,256)$} & \textcolor{blue}{$0$} \\
+    \textsc{FC(10)} & \textcolor{blue}{$(1,1,10)$} & \textcolor{blue}{$2570$} \\
     \bottomrule
     \end{tabular}
     \caption{Table to fill out for part 2.}
@@ -857,12 +713,12 @@ Give the exact single layer that would produce the same output as this sequence 
     \toprule
     Layer & Receptive Field \\
     \midrule
-    \textsc{Conv(5,1)} with stride 3 & \\
-    \textsc{MaxPooling(2)} with stride 2 & \\
-    \textsc{BatchNorm} & \\
-    \textsc{Conv(4,1)} with stride 2 & \\
-    \textsc{MaxPooling(2)} with stride 1 & \\
-    \textsc{Conv(3,1)} with stride 1& \\
+    \textsc{Conv(5,1)} with stride 3 & \textcolor{blue}{$5\times5$} \\
+    \textsc{MaxPooling(2)} with stride 2 & \textcolor{blue}{$8\times8$} \\
+    \textsc{BatchNorm} & \textcolor{blue}{$8\times8$} \\
+    \textsc{Conv(4,1)} with stride 2 & \textcolor{blue}{$26\times26$} \\
+    \textsc{MaxPooling(2)} with stride 1 & \textcolor{blue}{$38\times38$} \\
+    \textsc{Conv(3,1)} with stride 1 & \textcolor{blue}{$62\times62$} \\
     \bottomrule
     \end{tabular}
     \caption{Table to fill out for part 4.}
@@ -874,7 +730,115 @@ Give the exact single layer that would produce the same output as this sequence 
 }
 
 \Answer{
-% Write your answer here
+\begin{enumerate}
+\item \textbf{Equivalent convolution.}
+Assuming valid (no-padding) layers and the usual unflipped CNN kernel
+convention, the replacement is a \textbf{$12\times12$ convolution with stride $12$}.
+Convolution and average pooling compose into a weighted sum because no
+nonlinear activation occurs between them.
+
+Let $A_{m,c,i,j}$ and $B_{o,m,a,b}$ be the first and last convolution
+weights, respectively, where $c,m,o$ denote input, intermediate, and output
+channels. Use zero-based spatial indices:
+$i,j\in\{0,1,2\}$ and $a,b,u,v\in\{0,1\}$, with $u,v$ indexing the
+average-pooling window. For final output position $(p,q)$, a contributing
+input pixel has coordinates
+\[
+\begin{aligned}
+r&=3\bigl[2(2p+a)+u\bigr]+i=12p+6a+3u+i,\\
+s&=3\bigl[2(2q+b)+v\bigr]+j=12q+6b+3v+j.
+\end{aligned}
+\]
+Thus neighboring outputs start $3\cdot2\cdot2=12$ input positions apart,
+and the offsets range from $0$ to $6+3+2=11$ in each direction, giving a
+$12\times12$ kernel.
+
+Each path multiplies the input by $A_{m,c,i,j}$, the pooling coefficient
+$1/4$, and $B_{o,m,a,b}$. Summing the intermediate-channel contributions,
+the effective weights are
+\[
+\boxed{K_{o,c,6a+3u+i,\,6b+3v+j}
+=\frac14\sum_m B_{o,m,a,b}A_{m,c,i,j}}.
+\]
+Every spatial offset occurs exactly once for the allowed indices.
+For one channel, this reduces to
+$K_{6a+3u+i,\,6b+3v+j}=\frac14B_{ab}A_{ij}$.
+The effective layer has the first convolution's input-channel count and
+the last convolution's output-channel count.
+
+If the original convolution biases are $b_m^{(1)}$ and $b_o^{(2)}$,
+average pooling leaves the constant $b_m^{(1)}$ unchanged, so the effective
+bias is
+\[
+b_o^{\mathrm{eff}}=b_o^{(2)}
++\sum_m b_m^{(1)}\sum_{a,b=0}^1 B_{o,m,a,b}.
+\]
+If no biases are present, these terms are zero.
+
+\item \textbf{Output dimensions and parameters.}
+For pooling, use the instructor's clarified convention: no padding and
+stride equal to the window size. The convolutions keep padding 1; the
+first has stride 2 and the second has stride 1.
+For either spatial dimension,
+\[
+N_{\mathrm{out}}=\left\lfloor\frac{N_{\mathrm{in}}+2P-K}{S}\right\rfloor+1,
+\]
+where $K$ is the window size. Thus the successive spatial sizes are
+\[
+\begin{aligned}
+\mathrm{Conv}(4,8):&\quad
+\left\lfloor\frac{64+2-4}{2}\right\rfloor+1=32,\\
+\mathrm{MaxPool}(2):&\quad
+\left\lfloor\frac{32-2}{2}\right\rfloor+1=16,\\
+\mathrm{Conv}(3,16):&\quad 16+2-3+1=16,\\
+\mathrm{MaxPool}(4):&\quad
+\left\lfloor\frac{16-4}{4}\right\rfloor+1=4.
+\end{aligned}
+\]
+BatchNorm and ReLU preserve the shape, and pooling preserves the channel
+count. Flattening gives $4\cdot4\cdot16=256$ features.
+The table uses $(1,1,D)$ to display a $D$-component vector for Reshape and
+FC; these are not spatial feature maps.
+
+Each convolution has $(K^2C_{\mathrm{in}}+1)C_{\mathrm{out}}$ parameters,
+including one bias per output channel. Therefore,
+\[
+\begin{aligned}
+\#\mathrm{Conv}_1&=(4^2\cdot3+1)\cdot8=392,\\
+\#\mathrm{Conv}_2&=(3^2\cdot8+1)\cdot16=1168,\\
+\#\mathrm{FC}&=(256+1)\cdot10=2570.
+\end{aligned}
+\]
+BatchNorm learns one scale and one shift per channel, giving
+$2\cdot8=16$ and $2\cdot16=32$ parameters; its running statistics are not
+trainable. ReLU, pooling, and Reshape have no trainable parameters.
+The total is
+\[
+\boxed{392+16+1168+32+2570=4178}.
+\]
+\item \textbf{Redundant biases.}
+The biases of both convolutional layers can be removed because each
+convolution is immediately followed by BatchNorm. A constant bias shifts
+the values and their mean equally, so mean subtraction cancels it without
+changing the variance. BatchNorm's learned scale and shift are retained
+because they act after normalization. There is one bias per output
+channel, so removing the two convolutional bias vectors eliminates
+$8+16=24$ parameters.
+\item \textbf{Receptive fields.}
+Use the strides specified in the table. Let $R_\ell$ be the receptive-field
+side length and $J_\ell$ the spacing between neighboring activations,
+both measured in input pixels. Starting from $R_0=J_0=1$, a window of
+size $k_\ell$ and stride $s_\ell$ gives
+\[
+R_\ell=R_{\ell-1}+(k_\ell-1)J_{\ell-1},\qquad
+J_\ell=s_\ell J_{\ell-1}.
+\]
+BatchNorm leaves the geometric field and spacing unchanged; with fixed
+statistics it acts pointwise. For example, Conv(4,1) receives $R=8$ and
+$J=6$, giving $R=8+(4-1)\cdot6=26$ and $J=2\cdot6=12$.
+The table reports the resulting fields as $R\times R$.
+\item \textit{Answer to part (5) to be added.}
+\end{enumerate}
 }
 
 \end{exercise}

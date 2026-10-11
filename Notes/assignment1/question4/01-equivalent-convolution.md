@@ -5,7 +5,7 @@
 - [Assignment statement](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 - [Next: 4.2 — Shapes and parameter counts](02-shapes-and-parameters.md)
 
-**Notes only: the LaTeX answer remains blank.** Use valid/no-padding layers and the usual CNN convention of unflipped kernels. The padding defaults stated in 4.2 are separate from this part.
+**Parts 4.1–4.4 are now filled in LaTeX; part 4.5 remains unfilled.** Use valid/no-padding layers and the usual CNN convention of unflipped kernels. The padding defaults stated in 4.2 are separate from this part.
 
 ## Quick reminders
 
@@ -120,6 +120,6 @@ $$
 
 For one channel, this reduces to $b^{\mathrm{eff}}=b^{(2)}+b^{(1)}\sum_{a,b}B_{ab}$. With no biases, set them to zero.
 
-## What to submit later
+## What is included in the LaTeX answer
 
-State the effective layer, show how the input index yields kernel size 12 and stride 12, and give the coefficient formula. The fused weights are computed from the original kernels; their 144 entries are not all independent parameters of the original network.
+The answer states the effective layer, traces the input indices to obtain kernel size 12 and stride 12, and gives the channel-aware weight and bias formulas. The fused weights are computed from the original kernels; their 144 spatial entries per input/output channel pair are not all independent parameters of the original network.

@@ -4,9 +4,10 @@
 
 - [Assignment statement](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 - [Previous: 4.2 — Shapes and parameter counts](02-shapes-and-parameters.md)
+- [Suivant : 4.4 — Champ réceptif](04-receptive-fields.md)
 - [BatchNorm course slide, physical PDF page 66](../../../Slides/Lecture_3_convnets.pdf#page=66)
 
-**Notes only: the LaTeX answer remains blank.**
+**Part 4.3 is now filled in LaTeX with a concise explanation in words.**
 
 ## Quick reminders
 
@@ -82,10 +83,13 @@ So the convolution bias does not change the normalized training output. It is re
 | Conv(3,16), immediately before BatchNorm | 16 | $1168\to1152$ |
 | **Total removed** | **24** | — |
 
-This reduction is independent of the pooling convention:
+La clarification officielle de 4.2 impose un pooling sans padding, avec un stride égal à la fenêtre. Le réseau compte donc $4178$ paramètres avant cette simplification, puis
 
-- Main table from 4.2: $165458-24=165434$ trainable parameters.
-- Non-overlapping-pooling alternative: $4178-24=4154$.
+$$
+4178-24=4154
+$$
+
+paramètres entraînables après suppression des biais. Les 24 biais supprimables ne dépendent pas des dimensions spatiales : il y en a un par canal de sortie des deux convolutions.
 
 Keep the convolution weights, BatchNorm's $\gamma,\beta$, and the final FC biases. In particular, $\beta$ supplies a learned shift **after** normalization; it is not canceled by that normalization. The FC layer has no following BatchNorm to cancel its bias.
 
@@ -101,6 +105,6 @@ $$
 
 Then $z_t-\mu_{\mathrm{run}}'=z_t+b-\mu_{\mathrm{run}}$, exactly matching the old centered input. When designing the network from the start, use bias-free convolutions before BatchNorm and learn their statistics normally.
 
-## What to submit later
+## What is included in the LaTeX answer
 
-Identify the two convolution biases, state that BatchNorm's mean subtraction cancels them, and briefly show $(z+b)-(\mu_z+b)=z-\mu_z$. The model has 24 such redundant parameters.
+The short paragraph identifies the two convolutional bias vectors, explains mean cancellation and unchanged variance in words, and retains BatchNorm's learned scale/shift after normalization. It counts 24 removable parameters; the full derivation above remains study material.
