@@ -6,7 +6,7 @@
 - [Précédent : 4.4 — Champ réceptif](04-receptive-fields.md)
 - [Rappel : ReLU et activations](../question2/03-relu-and-variants.md)
 
-**Notes uniquement : la réponse 4.5 reste vide en LaTeX.** On distinguera la réponse signée du kernel de la sortie après **ReLU**. Cette activation est une étape supplémentaire, non explicitement donnée dans l’énoncé; son rôle sera justifié, pas supposé silencieusement.
+**La partie 4.5 est maintenant remplie en LaTeX.** La réponse distingue la réponse signée du kernel de la sortie après **ReLU**. Cette activation reste une étape supplémentaire, non explicitement donnée dans l’énoncé et signalée comme telle.
 
 ## 1. Comprendre l’orientation avant de choisir les coefficients
 
@@ -174,4 +174,4 @@ Il donne 1 sur $X_H$ : la luminosité augmente du haut vers le bas, donc le cont
 
 ## Pour la réponse courte
 
-Présenter les deux kernels, leurs réponses $z_+$ et $z_-$, puis **indiquer explicitement** la ReLU utilisée pour obtenir 0/1. Justifier les signes opposés et l’annulation des régions uniformes et des bords horizontaux. La ReLU n’étant pas spécifiée dans l’énoncé, ne pas attribuer au kernel seul les sorties après activation, ni promettre un rejet de toutes les orientations obliques. Les exemples et la preuve de la limite linéaire restent dans les notes.
+La réponse LaTeX présente les deux kernels, leurs réponses $z_+$ et $z_-$ et **la ReLU explicitement ajoutée** pour obtenir 0/1. Elle justifie les signes opposés et l’annulation des régions uniformes et des bords horizontaux, sans promettre le rejet de toutes les orientations obliques. Les exemples et la preuve de la limite linéaire restent dans cette note.
