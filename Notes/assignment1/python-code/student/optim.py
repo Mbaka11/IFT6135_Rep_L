@@ -20,7 +20,8 @@ class SGD:
         ##CODE
         # TODO: for every (param, grad) pair in self.model.parameters(),
         # apply the SGD update param <- param - lr * grad (in-place).
-        raise NotImplementedError
+        for param, grad in self.model.parameters():
+            param -= self.lr * grad
         ##END
 
     def zero_grad(self) -> None:

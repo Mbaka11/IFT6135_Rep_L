@@ -62,7 +62,9 @@ class Linear(Module):
         ##CODE
         # TODO: compute Z = X @ W.T + b. Cache whatever you need (e.g. X)
         # on self for use in backward().
-        raise NotImplementedError
+        self.X = X
+        Z = np.dot(X, self.W.T) + self.b
+        return Z
         ##END
 
     def backward(self, dZ: np.ndarray) -> np.ndarray:
@@ -78,7 +80,12 @@ class Linear(Module):
         ##CODE
         # TODO: compute and store self.dW and self.db (gradients of the loss
         # w.r.t. W and b), then return dX, the gradient w.r.t. the input.
-        raise NotImplementedError
+        # Fill the gradient buffers in-place with existing gradients (don't reassign self.dW or self.db).
+        self.dW[...] = np.dot(dZ.T, self.X)
+        self.db[...] = np.sum(dZ, axis=0)
+        # Gradient w.r.t. input X
+        dZ = np.dot(dZ, self.W)
+        return dZ
         ##END
 
     def parameters(self) -> list[tuple[np.ndarray, np.ndarray]]:
@@ -102,7 +109,13 @@ class Sigmoid(Module):
         """
         ##CODE
         # TODO: compute Y = sigmoid(Z). Cache what you need for backward().
-        raise NotImplementedError
+        # Use a numerically stable implementation of the sigmoid function to avoid overflow issues.
+        e = np.exp(-np.abs(Z))
+        self.Y = np.where(
+            Z >= 0, 
+            1 / (1 + e), 
+            e / (1 + e))
+        return self.Y
         ##END
 
     def backward(self, dY: np.ndarray) -> np.ndarray:
@@ -116,7 +129,9 @@ class Sigmoid(Module):
         """
         ##CODE
         # TODO: apply the chain rule through the sigmoid derivative.
-        raise NotImplementedError
+        # The derivative of the sigmoid function is sigmoid(Z) * (1 - sigmoid(Z)).
+        dZ = dY * self.Y * (1 - self.Y)
+        return dZ
         ##END
 
 
@@ -137,7 +152,10 @@ class ReLU(Module):
         """
         ##CODE
         # TODO: compute Y = max(Z, 0). Cache what you need for backward().
-        raise NotImplementedError
+        # The mask will be used to identify where Z is greater than 0 for the backward pass.
+        self.mask = Z > 0
+        Y = np.maximum(Z, 0)
+        return Y
         ##END
 
     def backward(self, dY: np.ndarray) -> np.ndarray:
@@ -151,7 +169,9 @@ class ReLU(Module):
         """
         ##CODE
         # TODO: apply the chain rule through the ReLU derivative.
-        raise NotImplementedError
+        # The derivative of ReLU is 1 for Z > 0 and 0 otherwise, which is captured by the mask.
+        dZ = dY * self.mask
+        return dZ
         ##END
 
 
@@ -172,7 +192,8 @@ class Tanh(Module):
         """
         ##CODE
         # TODO: compute Y = tanh(Z). Cache what you need for backward().
-        raise NotImplementedError
+        self.Y = np.tanh(Z)
+        return self.Y
         ##END
 
     def backward(self, dY: np.ndarray) -> np.ndarray:
@@ -186,7 +207,9 @@ class Tanh(Module):
         """
         ##CODE
         # TODO: apply the chain rule through the tanh derivative.
-        raise NotImplementedError
+        # The derivative of tanh is 1 - tanh(Z)^2, which can be computed using the cached output Y.
+        dZ = dY * (1 - self.Y ** 2)
+        return dZ
         ##END
 
 
@@ -209,7 +232,12 @@ class MSE(Module):
         """
         ##CODE
         # TODO: compute the scalar MSE loss. Cache what you need for backward().
-        raise NotImplementedError
+        self.diff = Y - Yt
+        # Total number of elements in the difference
+        self.n = self.diff.size 
+        # Compute the mean squared error loss
+        loss = np.mean(self.diff ** 2)
+        return loss
         ##END
 
     def backward(self) -> np.ndarray:
@@ -220,7 +248,9 @@ class MSE(Module):
         """
         ##CODE
         # TODO: return the gradient of the MSE loss w.r.t. Y.
-        raise NotImplementedError
+        # The gradient of the MSE loss w.r.t. Y is (2/n) * (Y - Yt), where n is the number of elements.
+        dY = (2 / self.n) * self.diff
+        return dY
         ##END
 
 
@@ -243,7 +273,12 @@ class MAE(Module):
         """
         ##CODE
         # TODO: compute the scalar MAE loss. Cache what you need for backward().
-        raise NotImplementedError
+        self.diff = Y - Yt
+        # Total number of elements in the difference
+        self.n = self.diff.size
+        # Compute the mean absolute error loss
+        loss = np.mean(np.abs(self.diff))
+        return loss
         ##END
 
     def backward(self) -> np.ndarray:
@@ -255,5 +290,6 @@ class MAE(Module):
         ##CODE
         # TODO: return the gradient of the MAE loss w.r.t. Y (the MAE
         # derivative is undefined at 0; treat it as 0 there).
-        raise NotImplementedError
+        dY = np.sign(self.diff) / self.n
+        return dY
         ##END

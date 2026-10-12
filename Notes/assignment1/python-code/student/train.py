@@ -104,11 +104,16 @@ def train_model(
             ##CODE
             # TODO: implement one mini-batch SGD training step:
             #   1. zero the optimizer's gradients
+            optimizer.zero_grad()
             #   2. forward pass: pred = model(xb)
+            pred = model(xb)
             #   3. compute the loss: loss = loss_fn(pred, yb)
+            loss = loss_fn(pred, yb)
             #   4. backward pass: model.backward(loss_fn.backward())
+            dL = loss_fn.backward()
+            model.backward(dL)
             #   5. take an optimizer step
-            raise NotImplementedError
+            optimizer.step()
             ##END
 
             epoch_loss += float(loss) * len(idx)

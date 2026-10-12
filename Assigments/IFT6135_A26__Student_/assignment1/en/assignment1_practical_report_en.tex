@@ -1,0 +1,453 @@
+\documentclass[12pt]{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsthm}
+\usepackage[hidelinks]{hyperref}
+
+% Formatting and Question/Answer structure adapted from the supplied template.
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\setlength{\headheight}{30pt}
+\addtolength{\parskip}{5mm}
+\pagestyle{fancy}
+
+\input{../../math_commands.tex}
+
+\newif\ifexercise
+\exercisetrue
+\newif\ifsolution
+\solutiontrue
+
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}
+\newtheorem{answer}{Answer}
+\newcommand{\Exercise}[1]{\ifexercise#1\fi}
+\definecolor{answer}{rgb}{0.00, 0.12, 0.60}
+\newcommand{\Answer}[1]{%
+  \ifsolution
+    \begingroup
+    \color{answer}
+    \begin{answer}#1\end{answer}
+    \endgroup
+  \fi
+}
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+% Replace placeholders with your own text and actual experimental outputs.
+% No experimental results, parameter counts, or interpretations are filled in.
+\newcommand{\ToComplete}{\textit{[To be completed.]}}
+\newcommand{\Blank}{\textemdash}
+\newcommand{\FigurePlaceholder}[1]{%
+  \par\smallskip
+  \noindent\fbox{\parbox[c][2.2cm][c]{0.94\linewidth}{\centering\itshape #1}}
+  \par\smallskip
+}
+% Optional: put exported figures in a report-assets/ directory beside this file.
+\graphicspath{{report-assets/}}
+
+\begin{document}
+
+\fancyhead{}
+\fancyfoot{}
+\fancyhead[L]{\begin{tabular}[b]{l}
+  IFT6135-A2026 \\
+  Prof: Aishwarya Agrawal
+\end{tabular}}
+\fancyhead[R]{\begin{tabular}[b]{r}
+  Assignment 1 -- Programming Report \\
+  Multilayer Perceptrons and Convolutional Neural Networks
+\end{tabular}}
+\fancyfoot[C]{\thepage\quad -- Do not distribute --}
+
+\textbf{Due Date: October 13th, 2026 at 11:00 pm}
+
+\textbf{Student name:} Marsel Bakashov\par
+\textbf{Student number:} 20216284\par
+\textbf{Q1 Google Colab notebook (executed, publicly accessible):} \ToComplete\par
+% Replace the placeholder with \url{YOUR_PUBLIC_Q1_COLAB_URL}.
+\textbf{Q2 Google Colab notebook (executed, publicly accessible):} \ToComplete\par
+% Replace the placeholder with \url{YOUR_PUBLIC_Q2_COLAB_URL}.
+
+% These are the written-report questions only. The original handout is unchanged.
+% Select the appropriate answer pages for each question on Gradescope.
+
+\begin{exercise}[20] \textbf{(MLP Implementation with NumPy)}
+\Exercise{
+\subsection*{Part 2: Time Series Forecasting -- Evaluation and Analysis}
+
+\begin{enumerate}[label=\textbf{1.2.\arabic*}, leftmargin=*]
+
+\item \textbf{(3 points)} For every combination of dataset, model, and (context, horizon) setting, report the test
+\texttt{MSE} and test \texttt{MAE}.
+
+For the noisy datasets, you have access to both the noisy targets and the underlying
+noiseless ground truth. In addition to the metrics above, compute \texttt{gt\_test\_mse} and
+\texttt{gt\_test\_mae}: the MSE and MAE of each model's predictions evaluated against the
+\emph{noiseless} ground truth, rather than the noisy targets. These metrics measure how well
+a model recovers the true underlying signal, i.e.\ how good a denoiser it is.
+
+\item \textbf{(3 points)} Using \texttt{gt\_test\_mse} and \texttt{gt\_test\_mae}, identify the best- and worst-performing models on each dataset and plot their predictions. Are these results consistent with what you would expect based on the depth and choice of activation function of each model?
+
+\item \textbf{(3 points)}
+For tasks with a prediction horizon of $p=336$, both 96-step and 336-step contexts are available. Report the number of cases in which each context yields the best prediction. Are these results consistent with your initial expectations?
+
+\end{enumerate}
+}
+\end{exercise}
+
+\clearpage
+\Answer{
+\leavevmode\par
+\begin{enumerate}[label=\textbf{1.2.\arabic*}, leftmargin=*]
+
+\item \textbf{Test metrics.}\par
+\ToComplete
+
+% Populate this table with actual results for every prescribed combination.
+% The header names match train.py's CSV. Do not invent missing values.
+% Explain why ground-truth metrics are absent for a clean dataset, if applicable.
+% Add rows; longtable automatically continues on subsequent pages.
+{\scriptsize
+\begin{longtable}{@{}p{0.18\linewidth}p{0.22\linewidth}rrrrrr@{}}
+\caption{Test metrics for the prescribed experiment grid.}\label{tab:q1-metrics}\\
+\toprule
+Dataset & Model & $h$ & $p$ & \texttt{test\_mse} & \texttt{test\_mae} & \texttt{gt\_test\_mse} & \texttt{gt\_test\_mae} \\
+\midrule
+\endfirsthead
+\toprule
+Dataset & Model & $h$ & $p$ & \texttt{test\_mse} & \texttt{test\_mae} & \texttt{gt\_test\_mse} & \texttt{gt\_test\_mae} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{8}{r}{Continued on the next page.} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\Blank & \Blank & \Blank & \Blank & \Blank & \Blank & \Blank & \Blank \\
+\end{longtable}
+}
+
+\item \textbf{Best and worst models; prediction plots.}\par
+\ToComplete
+
+% State the metric and comparison rule used, and identify the actual runs.
+% Add the required dataset-specific results and figures, not just this example row.
+\begin{center}
+\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Dataset & Criterion & Setting $(h,p)$ & Best model & Worst model \\
+\midrule
+\Blank & \Blank & \Blank & \Blank & \Blank \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\FigurePlaceholder{Insert the required best- and worst-model prediction plots.}
+% Replace the box with actual \includegraphics commands and informative captions.
+% Discuss expectations only after comparing the measured results.
+
+\item \textbf{Context comparison at a fixed horizon.}\par
+\ToComplete
+
+% Compare the prescribed p=336 runs with matching dataset/model combinations.
+% State the comparison criterion and how ties are handled.
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Criterion & 96-step context wins & 336-step context wins & Ties \\
+\midrule
+\Blank & \Blank & \Blank & \Blank \\
+\bottomrule
+\end{tabular}
+\end{center}
+% Explain whether the actual counts match your initial expectations.
+
+\end{enumerate}
+}
+
+\clearpage
+\begin{exercise}[20] \textbf{(Implementing CNN layers with NumPy)}
+\Exercise{
+\subsection*{Part 1: CNN layers (11 points)}
+
+All spatial arrays use $(N,C,H,W)$ ordering. Follow the notebook's
+requirements for dtypes, valid input sizes, caches, and gradients.
+
+\begin{enumerate}[label=\textbf{2.1.\arabic*}, leftmargin=*]
+
+\item \textbf{Convolution (6 points).}
+Implement \texttt{conv2d\_forward} and \texttt{conv2d\_backward}.
+Use $3\times3$ kernels, stride $1$, and one pixel of zero-padding
+on each side. Support multiple input and output channels, with
+one bias per output channel. Use cross-correlation: do not flip
+the filters. Return the output and cache in the forward pass,
+and gradients with respect to the input, filters, and biases
+in the backward pass.
+
+\item \textbf{Max pooling (3 points).}
+Implement \texttt{maxpool2d\_forward} and
+\texttt{maxpool2d\_backward} using $2\times2$ windows, stride $2$,
+and no padding. Return the output and cache in the forward pass
+and the input gradient in the backward pass. For tied maxima,
+select the first in row-major order and send the gradient only
+to that entry.
+
+\item \textbf{Dimensions and parameters (1 point).}
+Verify the output shapes in the table below. Show the parameter
+count of each trainable layer, including biases, and the total.
+Identify the layers with no trainable parameters.
+
+\item \textbf{Numerical checks (1 point).}
+Run the supplied tests and finite-difference gradient checks.
+Report and save the numerical errors. Finite differences are
+for validation only; training must use your analytical backward
+implementations.
+
+\end{enumerate}
+
+\subsection*{Part 2: Generalization to new positions (9 points)}
+
+\textbf{Dataset.}
+Each $24\times24$ grayscale image contains a $6\times6$ grid of
+$4\times4$-pixel tiles: 18 dark tiles of intensity $0.2$ and 18 light
+tiles of intensity $0.8$. All pixels within a tile have the same value.
+Positive images (label $1$) contain exactly one $2\times2$ block of
+neighboring tiles that are all dark or all light. Negative images
+(label $0$) contain no such block anywhere. Blocks do not wrap
+around boundaries.
+
+The supplied splits contain 2048 training images and 512 images each
+for validation, seen-location test, and unseen-location test.
+All splits are balanced by class and have disjoint tile layouts.
+Positive examples are also balanced by block location and type.
+A location is the zero-indexed $(\mathrm{row},\mathrm{column})$ of
+the block's top-left tile. Training, validation, and seen-location
+positives use $(1,1)$ or $(1,3)$; unseen-location positives use
+$(3,1)$ or $(3,3)$. Negatives follow the same no-block rule in all
+splits. The test sets contain different images, not paired translations.
+Only images, not layout metadata, are model inputs.
+
+\begin{enumerate}[label=\textbf{2.2.\arabic*}, leftmargin=*]
+
+\item \textbf{Build the CNN (2 points).}
+Complete \texttt{build\_model(seed)} to return a new
+\texttt{Sequential} model with the architecture below.
+Use the supplied initialization. Both convolutions and the
+linear layer include biases. Output shapes omit the batch axis;
+the model returns two raw logits, without a final softmax.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Layer & Configuration & Output shape \\
+\midrule
+Input & Grayscale & $1\times24\times24$ \\
+Convolution + ReLU & 8 filters, $3\times3$, stride 1, padding 1
+    & $8\times24\times24$ \\
+Max pooling & $2\times2$, stride 2, no padding
+    & $8\times12\times12$ \\
+Convolution + ReLU & 16 filters, $3\times3$, stride 1, padding 1
+    & $16\times12\times12$ \\
+Global max pooling & Maximum over both spatial axes & $16$ \\
+Linear & $16\rightarrow2$, with bias & $2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\item \textbf{Training and seen locations (3 points).}
+Train once for 30 epochs with batch size 64 and Adam at learning
+rate $0.003$. Keep all seeds, initialization, and other settings
+as supplied in the notebook; do not add layers, augmentation,
+or hyperparameter search.
+Select the lowest validation-cross-entropy checkpoint, preferring
+the earlier epoch on a tie. Do not use either test set for selection.
+Plot training and validation loss and accuracy, report the selected
+epoch, and evaluate accuracy on the seen-location test set.
+
+\item \textbf{Unseen locations: no retraining (2 points).}
+Evaluate the same checkpoint on the unseen-location test set
+without updating any parameters. Report accuracy, positive-class
+recall, and a confusion matrix for each test set, using the
+provided evaluation functions. Use true labels as matrix rows
+and predictions as columns.
+
+\item \textbf{Interpretation (2 points).}
+Show at least two positive examples from each test set, with
+labels, predictions, block locations, and example identifiers.
+Discuss an error if one occurs; otherwise state that none occurred.
+Explain the seen/unseen comparison in terms of local receptive
+fields, weight sharing, and global max pooling. Distinguish
+empirical generalization from guaranteed translation invariance,
+considering zero-padding, stride-2 pooling, and independently
+sampled test images. Do not assume performance must decrease.
+
+\end{enumerate}
+}
+\end{exercise}
+
+\clearpage
+\Answer{
+\leavevmode\par
+\subsection*{Part 1: CNN layers}
+\begin{enumerate}[label=\textbf{2.1.\arabic*}, leftmargin=*]
+
+\item \textbf{Convolution implementation.}\par
+\ToComplete
+% Describe your implementation and identify the submitted source file.
+% The implementation itself belongs in the required .py file/notebook.
+
+\item \textbf{Max-pooling implementation.}\par
+\ToComplete
+% Describe your implementation and its tie-handling convention.
+
+\item \textbf{Verified shapes and parameter counts.}\par
+\ToComplete
+
+% The earlier architecture table reproduces GIVEN shapes, not verification.
+% Fill this answer table with your own verified shapes/counts and show your work.
+\begin{center}
+\begin{tabular}{@{}lcr@{}}
+\toprule
+Layer & Verified output shape & Trainable parameters \\
+\midrule
+Input & \Blank & \Blank \\
+Convolution 1 & \Blank & \Blank \\
+ReLU 1 & \Blank & \Blank \\
+Max pooling & \Blank & \Blank \\
+Convolution 2 & \Blank & \Blank \\
+ReLU 2 & \Blank & \Blank \\
+Global max pooling & \Blank & \Blank \\
+Linear & \Blank & \Blank \\
+\midrule
+Total & & \Blank \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\item \textbf{Tests and numerical gradient checks.}\par
+\ToComplete
+
+% Record the error definition used by the supplied tests and actual errors.
+% Save the corresponding outputs in the executed notebook/exported artifacts.
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Check & Error measure & Measured error \\
+\midrule
+Convolution: input gradient & \Blank & \Blank \\
+Convolution: filter gradient & \Blank & \Blank \\
+Convolution: bias gradient & \Blank & \Blank \\
+Max pooling: input gradient & \Blank & \Blank \\
+\bottomrule
+\end{tabular}
+\end{center}
+% Also report the actual outcomes of the supplied public tests.
+
+\end{enumerate}
+
+\subsection*{Part 2: Generalization to new positions}
+\begin{enumerate}[label=\textbf{2.2.\arabic*}, leftmargin=*]
+
+\item \textbf{CNN construction.}\par
+\ToComplete
+% Document your model construction and the actual shape checks.
+
+\item \textbf{Training, checkpoint selection, and seen-location accuracy.}\par
+\ToComplete
+
+\textbf{Selected epoch:} \Blank\par
+\textbf{Selected validation cross-entropy:} \Blank\par
+\textbf{Seen-location test accuracy:} \Blank\par
+
+\FigurePlaceholder{Insert training/validation loss and accuracy curves.}
+% Fill these fields from the prescribed single training run.
+
+\item \textbf{Evaluation without retraining.}\par
+\ToComplete
+
+\begin{center}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Test set & Accuracy & Positive-class recall \\
+\midrule
+Seen locations & \Blank & \Blank \\
+Unseen locations & \Blank & \Blank \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\begin{minipage}[t]{0.47\linewidth}
+\centering
+\textbf{Seen-location confusion matrix}\par\smallskip
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Predicted 0 & Predicted 1 \\
+\midrule
+True 0 & \Blank & \Blank \\
+True 1 & \Blank & \Blank \\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.47\linewidth}
+\centering
+\textbf{Unseen-location confusion matrix}\par\smallskip
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Predicted 0 & Predicted 1 \\
+\midrule
+True 0 & \Blank & \Blank \\
+True 1 & \Blank & \Blank \\
+\bottomrule
+\end{tabular}
+\end{minipage}\par
+% Both matrices must come from the same selected checkpoint.
+
+\item \textbf{Examples and interpretation.}\par
+\ToComplete
+
+\begin{center}
+\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Test set & Example ID & Block location & True label & Prediction \\
+\midrule
+Seen & \Blank & \Blank & \Blank & \Blank \\
+Seen & \Blank & \Blank & \Blank & \Blank \\
+Unseen & \Blank & \Blank & \Blank & \Blank \\
+Unseen & \Blank & \Blank & \Blank & \Blank \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\FigurePlaceholder{Insert at least two positive images from each test set.}
+% Add the actual example labels/predictions/locations/identifiers.
+% Discuss observed errors, or state explicitly that none were observed.
+% Base the generalization discussion on your measured results.
+
+\end{enumerate}
+}
+
+\section*{Sources and assistance}
+\ToComplete
+% Credit actual sources/tools and state their scope accurately, as required
+% by the course policy. A declaration does not override restrictions on use.
+
+\end{document}
