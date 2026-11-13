@@ -4,7 +4,7 @@
 
 - [Previous: 1.1 — Forward pass](01-forward-pass.md)
 - [Next: 1.3 — Analytical gradients](03-analytical-gradients.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes. Answer 1, part (2), contains the derivation and numerical result in LaTeX; part (3) now contains the expanded analytical chain-rule derivations.
 

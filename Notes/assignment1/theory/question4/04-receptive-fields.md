@@ -2,10 +2,10 @@
 
 **Objectif :** déterminer quelle zone de l’image d’entrée peut influencer **un seul élément** à la sortie de chaque couche.
 
-- [Énoncé de l’exercice](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Énoncé de l’exercice](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 - [Précédent : 4.3 — Biais avant BatchNorm](03-biases-before-batchnorm.md)
 - [Suivant : 4.5 — Détection de contours](05-edge-detection.md)
-- [Connectivité locale dans le cours, page PDF 10](../../../Slides/Lecture_3_convnets.pdf#page=10)
+- [Connectivité locale dans le cours, page PDF 10](../../../../Slides/Lecture_3_convnets.pdf#page=10)
 
 **La partie 4.4 est maintenant remplie en LaTeX : tableau et justification courte, avec les strides confirmés par l’enseignant.**
 

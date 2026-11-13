@@ -2,7 +2,7 @@
 
 **Scope:** Question 1, part (1), before any training or parameter update. Parts (2)–(6) are not solved here.
 
-[Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+[Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes, not the text of a final submission. A concise calculation and the completed table are now included in Answer 1, part (1), of the LaTeX template; the detailed reminders and toy example stay here.
 

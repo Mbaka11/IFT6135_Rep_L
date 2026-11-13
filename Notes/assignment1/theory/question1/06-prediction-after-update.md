@@ -4,7 +4,7 @@
 
 - [Previous: 1.5 — One gradient-descent update](05-gradient-descent-update.md)
 - [Initial forward pass: 1.1](01-forward-pass.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes. **The LaTeX answer for part (6) contains the new forward pass and the improvement conclusion.** We do not take another gradient step here.
 

@@ -9,7 +9,7 @@
 - [Previous: 2.1 — Identity activations](01-linear-activations.md)
 - [Next: 2.3 — ReLU, LeakyReLU, and Maxout](03-relu-and-variants.md)
 - [Earlier sigmoid derivative steps: Question 1.2](../question1/02-cross-entropy-derivative.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes. **LaTeX status: Question 2(2)(a), (b), and (c) are all filled.** This question uses the standard mathematical sigmoid; the numerical approximation $e\approx3$ was a convention specifically stated for Question 1.
 

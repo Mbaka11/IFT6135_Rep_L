@@ -1,0 +1,637 @@
+\documentclass[12pt]{article}
+\usepackage[canadien]{babel} 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfigure}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{todonotes}
+
+% If your paper is accepted, change the options for the package
+% aistats2e as follows:
+%
+%\usepackage[accepted]{aistats2e}
+%
+% This option will print headings for the title of your paper and
+% headings for the authors names, plus a copyright note at the end of
+% the first column of the first page.
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\addtolength{\parskip}{5mm}
+\pagestyle{fancy}
+
+%************
+%* COMMANDS *
+%************
+
+\input{../math_commands.tex}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{booktabs}
+\usepackage[ruled,vlined]{algorithm2e}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}%[chapter]
+\newtheorem{answer}{Answer} % asterisk to remove ordering
+
+\newcommand{\Exercise}[1]{
+\ifexercise#1\fi
+}
+
+\definecolor{answer}{rgb}{0.00, 0.12, 0.60}
+\newcommand{\Answer}[1]{%
+  \ifsolution
+    {\color{answer}\begin{answer}#1\end{answer}}%
+  \fi
+}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{enumitem}
+\newcommand{\staritem}{
+\addtocounter{enumi}{1}
+\item[$\phantom{x}^{*}$\theenumi]}
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+\begin{document}
+
+
+\fancyhead{}
+\fancyfoot{}
+
+\fancyhead[L]{
+  \begin{tabular}[b]{l}
+    IFT6135-A2026  \\
+    Prof: Aishwarya Agrawal \\
+  \end{tabular}
+}
+\fancyhead[R]{
+  \begin{tabular}[b]{r}
+    Assignment 2 - Theory  \\
+    Recurrent Neural Networks and Transformers \\
+  \end{tabular}
+}
+\fancyfoot[C]{- Do not distribute -}
+
+\vspace{1cm}
+
+\shorthandoff{:}
+{\textbf{Due Date: November 15th, 2026 at 11:00 pm}}\\
+
+
+\vspace{-0.5cm}
+\underline{Instructions}%
+\renewcommand{\labelitemi}{\textbullet}
+
+\renewcommand{\labelitemi}{\textbullet}
+
+\begin{itemize}
+\item \emph{This assignment is intensive, start well ahead of time!}
+\item \emph{For all questions, show your work.}
+\item \emph{Use LaTeX and the template we provide when writing your answers.
+You may reuse most of the notation shorthands, equations and/or tables.
+See the assignment policy on the course website for more details.}
+\item \emph{Submit this assignment on Gradescope. Make sure that you select the pages containing the answer for each question on Gradescope. We will not grade questions without selected pages.}
+\item \emph{TAs for this assignment are \textbf{Achille Sowa} and \textbf{Djalil Chikhi}.}
+\end{itemize}
+\vspace{0.2cm}
+
+
+\vspace{0.2cm}
+
+% Q1
+\begin{exercise}[12] \textbf{Link between Linear Transformer and RNN}
+\Exercise{\label{ex:lstm}}
+
+\noindent Let $\vx_1, \dots, \vx_L \in \R^{d}$ be a sequence of $L$ input vectors. A decoder
+transformer uses \emph{causal softmax attention}: at time step $t$, the output $\vo_t$ attends
+over all the positions $i \le t$ of the sequence,
+\begin{equation}
+    \vq_t = \mW_Q \vx_t, \qquad \vk_t = \mW_K \vx_t, \qquad \vv_t = \mW_V \vx_t, \qquad
+    \vo_t = \sum_{i=1}^{t} \frac{\exp\!\left(\vk_i^\top \vq_t\right)}{\sum_{j=1}^{t} \exp\!\left(\vk_j^\top \vq_t\right)}\, \vv_i,
+    \label{eq:softmax-attn}
+\end{equation}
+where $\mW_Q, \mW_K \in \R^{d \times d}$ and $\mW_V \in \R^{d \times d}$ are learned
+projection matrices. Consequently $\vq_t, \vk_t \in \R^{d}$, $\vv_t \in \R^{d}$ and
+$\vo_t \in \R^{d}$.
+
+\noindent \emph{Linear attention} replaces the similarity $\exp(\vk_i^\top \vq_t)$ by a dot
+product in some feature space, $\phi(\vk_i)^\top \phi(\vq_t)$, for a feature map
+$\phi : \R^{d_k} \to \R^{d_\phi}$. In this exercise we consider the simplest case
+$\phi = \mathrm{id}$, i.e.\ the similarity is simply $\vk_i^\top \vq_t$.
+
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=*]
+
+\item \textbf{(2 points)} Show that, when $\exp(\vk_i^\top \vq_t)$ is replaced by
+$\vk_i^\top \vq_t$ in~\eqref{eq:softmax-attn}, the output can be written as
+\begin{equation}
+    \vo_t = \frac{\mS_t\, \vq_t}{\vz_t^\top \vq_t},
+    \qquad \text{with} \qquad
+    \mS_t = \sum_{i=1}^{t} \vv_i \vk_i^\top \in \R^{d \times d},
+    \qquad
+    \vz_t = \sum_{i=1}^{t} \vk_i \in \R^{d}.
+    \label{eq:linear-attn}
+\end{equation}
+
+\noindent This can be interpreted as a recurrent neural network (RNN) whose hidden state
+$\mS_t$ is updated at every time step, and from which the output is obtained by a linear
+projection with $\vq_t$. In practice, the denominator is often dropped, and the output
+becomes
+\begin{equation}
+    \vo_t = \mS_t\, \vq_t.
+    \label{eq:linear-rnn}
+\end{equation}
+This is the convention we follow in the rest of the exercise.
+
+\item \textbf{(3 points)} \emph{Recurrent form.} Using~\eqref{eq:linear-rnn}, write an
+algorithm that computes all the outputs $\vo_1, \dots, \vo_L$ from the inputs
+$\vx_1, \dots, \vx_L$ in time \emph{linear} in the sequence length $L$.
+
+\emph{Hint:} first derive a recurrence relation expressing $\mS_t$ in terms of $\mS_{t-1}$,
+then use it to write your algorithm.
+Complete the blanks in the skeleton below.
+Complete the blanks in the skeleton below.
+
+\begin{minipage}{\linewidth}
+    \begin{algorithm}[H]
+    \DontPrintSemicolon
+    \KwIn{Inputs $\vx_1, \dots, \vx_L \in \R^{d}$, weights $\mW_Q, \mW_K \in \R^{d \times d}$ and $\mW_V \in \R^{d \times d}$}
+    \KwOut{Outputs $\vo_1, \dots, \vo_L \in \R^{d}$}
+    Initialization: $\mS_{0} \leftarrow \blank$\;
+    \For{$t = 1$ \KwTo $L$}{
+      Compute the query, key and value: $\vq_t \leftarrow \mW_Q \vx_t$, $\vk_t \leftarrow \mW_K \vx_t$, $\vv_t \leftarrow \mW_V \vx_t$\;
+      %Update the hidden state: $\mS_{t} \leftarrow \blank$\;
+      %Compute the output: $\vo_{t} \leftarrow \blank$\;
+      Complete this part
+    }
+    \caption{Linear attention, recurrent form}
+    \label{alg:linear-rnn}
+    \end{algorithm}
+\end{minipage}
+
+\item \textbf{(4 points)} \emph{Parallel form.} On a GPU, it is more efficient to process
+many vector products at once as a single matrix product. Stack the inputs and outputs as
+rows of matrices,
+\[
+    \mX = \begin{bmatrix} \vx_1^\top \\ \vdots \\ \vx_L^\top \end{bmatrix} \in \R^{L \times d},
+    \qquad
+    \mO = \begin{bmatrix} \vo_1^\top \\ \vdots \\ \vo_L^\top \end{bmatrix} \in \R^{L \times d_v},
+\]
+and let $\mQ = \mX \mW_Q^\top \in \R^{L \times d}$, $\mK = \mX \mW_K^\top \in \R^{L \times d}$
+and $\mV = \mX \mW_V^\top \in \R^{L \times d}$. Show that the outputs of~\eqref{eq:linear-rnn}
+can be written in matrix form as
+\begin{equation}
+    \mO = \left( \mQ \mK^\top \odot \mM \right) \mV,
+    \label{eq:parallel}
+\end{equation}
+where $\odot$ denotes the element-wise (Hadamard) product and $\mM \in \{0,1\}^{L \times L}$
+is the causal mask, $M_{ti} = 1$ if $i \le t$ and $M_{ti} = 0$ otherwise.
+
+\item \textbf{(3 points)} \emph{Complexity.} Give the time and the average number of sequential steps to compute
+all the outputs $\vo_1, \dots, \vo_L$ with each of the three methods below, as a
+function of $L$ and $d$ (you may ignore the cost of computing $\mQ$, $\mK$ and $\mV$).
+Justify your answers briefly, and comment on the dependence on $L$.
+
+\begin{center}
+\begin{tabular}{lcc}
+    \toprule
+    Method & Time Complexity & Sequential Operations \\
+    \midrule
+    Softmax attention (Classic transformer) & & \\
+    Linear RNN, recurrent form (Question~2) & & \\
+    Linear RNN, parallel form~\eqref{eq:parallel} (Question~3) & & \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\end{enumerate}
+
+
+
+
+\end{exercise}
+
+\Answer{\hfill
+
+}
+% Q2
+\begin{exercise}[1-1-4-6-2] (\textbf{Decoding.})
+\Exercise{
+\label{ex:decoding}
+Suppose that we have a vocabulary containing $N$ possible words, including a special token \texttt{<BOS>} to indicate the beginning of a sentence. Recall that in general, a language model with a full context can be written as
+\begin{equation*}
+    p(w_{1}, w_{2}, \ldots, w_{T} \mid w_{0}) = \prod_{t=1}^{T} p(w_{t} \mid w_{0}, \ldots, w_{t-1}).
+\end{equation*}
+We will use the notation $\vw_{0:t-1}$ to denote the (partial) sequence $(w_{0}, \ldots, w_{t-1})$. Once we have a fully trained language model, we would like to generate realistic sequences of words from our language model, starting with our special token \texttt{<BOS>}. In particular, we might be interested in generating the most likely sequence $\vw_{1:T}^{\star}$ under this model, defined as
+\begin{equation}
+    \vw_{1:T}^{\star} = \argmax_{\vw_{1:T}} p(\vw_{1:T} \mid w_{0} = \textrm{\texttt{<BOS>}}).
+    \label{eq:joint_prob}
+\end{equation}
+For clarity we will drop the explicit conditioning on $w_{0}$, assuming from now on that the sequences always start with the \texttt{<BOS>} token.
+
+\begin{enumerate}[label=\arabic{exercise}.\arabic*]
+    \item How many possible sequences of length $T+1$ starting with the token \texttt{<BOS>} can be generated in total? Give an exact expression, without the $O$ notation. Note that the length $T+1$ here includes the \texttt{<BOS>} token.
+    
+    \item To determine the most likely sequence $\vw_{1:T}^{\star}$, one could perform exhaustive enumeration of all possible sequences and select the one with the highest joint probability (as defined in equation \ref{eq:joint_prob}). Comment on the feasibility of this approach. Is it scalable with vocabulary size?
+
+    \item In light of the difficulties associated with exhaustive enumeration, it becomes essential to employ practical search strategies to obtain a reasonable approximation of the most likely sequence.
+    
+    In order to generate $B$ sequences having high likelihood, one can use a heuristic algorithm called \emph{Beam search decoding}, whose pseudo-code is given in Algorithm~\ref{alg:beam-search-decoding} below
+
+    \begin{minipage}{\linewidth}
+    \begin{algorithm}[H]
+    \DontPrintSemicolon
+    \KwIn{A language model $p(\vw_{1:T} \mid w_{0})$, the beam width $B$}
+    \KwOut{$B$ sequences $\vw_{1:T}^{(b)}$ for $b \in \{1, \ldots, B\}$}
+    Initialization: $w_{0}^{(b)} \leftarrow \textrm{\texttt{<BOS>}}$ for all $b \in \{1,\ldots,B\}$\;
+    Initial log-likelihoods: $l_{0}^{(b)} \leftarrow 0$ for all $b \in \{1,\ldots,B\}$\;
+    \For{$t = 1$ \KwTo $T$}{
+      \For{$b = 1$ \KwTo $B$}{
+        \For{$j = 1$ \KwTo $N$}{
+          $s_{b}(j) \leftarrow l_{t-1}^{(b)} + \log p(w_{t} = j \mid \vw_{0:t-1}^{(b)})$\;
+        }
+      }
+      \For{$b = 1$ \KwTo $B$}{
+        Find $(b', j)$ such that $s_{b'}(j)$ is the $b$-th largest score\;
+        Save the partial sequence $b'$: $\widetilde{\vw}_{0:t-1}^{(b)} \leftarrow \vw_{0:t-1}^{(b')}$\;
+        Add the word $j$ to the sequence $b$: $w_{t}^{(b)} \leftarrow j$\;
+        Update the log-likelihood: $l_{t}^{(b)} \leftarrow s_{b'}(j)$\;
+      }
+      Assign the partial sequences: $\vw_{0:t-1}^{(b)} \leftarrow \widetilde{\vw}_{0:t-1}^{(b)}$ for all $b \in \{1, \ldots, B\}$\;
+    }
+    \caption{Beam search decoding}
+    \label{alg:beam-search-decoding}
+    \end{algorithm}
+    \end{minipage}
+    
+    What is the time complexity of Algorithm~\ref{alg:beam-search-decoding}? Its space complexity? Write the algorithmic complexities using the $O$ notation, as a function of $T$, $B$, and $N$. Is this a practical decoding algorithm when the size of the vocabulary is large?
+
+    
+    \item The different sequences that can be generated with a language model can be represented as a tree, where the nodes correspond to words and edges are labeled with the log-probability $\log p(w_{t}\mid \vw_{0:t-1})$, depending on the path $\vw_{0:t-1}$. In this question, consider the following language model (where the low probability paths have been removed for clarity)
+
+    \hspace*{-2.5em}\begin{minipage}{\linewidth}
+    \centering
+    \begin{tikzpicture}[scale=0.9,every node/.style={shape=rectangle, inner sep=5pt, align=center}, level 3/.style={sibling distance=5.5em}, level 2/.style={sibling distance=11em}, level 1/.style={sibling distance=22em}, edge from parent path={(\tikzparentnode.south) .. controls +(0,-0.7) and +(0,0.7) .. (\tikzchildnode.north)}, edge from parent/.style={draw, thick, -latex}, logl/.style={draw=none, font=\footnotesize}, label/.style={anchor=west, align=flush left}]
+      \node {\texttt{<BOS>}}
+        child { node {\texttt{the}}
+          child { node {\texttt{green\vphantom{l}}}
+            child { node {\texttt{ellipse\vphantom{q}}} edge from parent node[above left,logl] {$-3.6$} }
+            child { node {\texttt{rectangle}} edge from parent node[above right,logl] {$-3.3$} } edge from parent node[above left,logl] {$-3.4$} }
+          child { node {\texttt{red}}
+            child { node {\texttt{circle\vphantom{q}}} edge from parent node[above left,logl] {$-4.8$} }
+            child { node {\texttt{rectangle}} edge from parent node[above right,logl] {$-4.5$} } edge from parent node[above right,logl] {$-3.1$} } edge from parent node[above left,logl] {$-1.5$} }
+        child { node {\texttt{a}}
+          child { node {\texttt{blue}}
+            child { node {\texttt{ellipse\vphantom{q}}} edge from parent node[above left,logl] {$-5.4$} }
+            child { node {\texttt{square\vphantom{l}}} edge from parent node[above right,logl] {$-5.0$} } edge from parent node[above left,logl] {$-2.5$} }
+          child { node {\texttt{red}}
+            child { node {\texttt{circle\vphantom{q}}} edge from parent node[above left,logl] {$-4.9$} }
+            child { node {\texttt{square\vphantom{l}}} edge from parent node[above right,logl] (logl_lvl3) {$-5.1$} } edge from parent node[above right,logl] (logl_lvl2) {$-2.7$} } edge from parent node[above right,logl] (logl_lvl1) {$-1.8$} };
+            
+            \node[label, right=1em of logl_lvl3] (logl_lvl3_label) {$\log p(w_{3}\mid \vw_{0:2})$};
+            \node[label] (logl_lvl2_label) at (logl_lvl2 -| logl_lvl3_label.west) {$\log p(w_{2}\mid \vw_{0:1})$};
+            \node[label] (logl_lvl1_label) at (logl_lvl1 -| logl_lvl3_label.west) {$\log p(w_{1}\mid w_{0})$};
+    \end{tikzpicture}
+    \end{minipage}
+    
+    \begin{enumerate}[label=\arabic{exercise}.\arabic{enumi}.\alph*]
+        
+        \item \emph{Greedy decoding} is a simple algorithm where the next word $\overline{w}_{t}$ is selected by maximizing the conditional probability $p(w_{t}\mid \overline{\vw}_{0:t-1})$ (with $\overline{w}_{0} = \textrm{\texttt{<BOS>}}$)
+        \begin{equation*}
+            \overline{w}_{t} = \argmax_{w_{t}} \log p(w_{t}\mid \overline{\vw}_{0:t-1}).
+        \end{equation*}
+        Find $\overline{\vw}_{1:3}$ using greedy decoding on this language model, and its log-likelihood $\log p(\overline{\vw}_{1:3})$.
+        
+        \item Apply beam search decoding with a beam width $B = 2$ to this language model, and find $\vw_{1:3}^{(1)}$ and $\vw_{1:3}^{(2)}$, together with their respective log-likelihoods.
+
+    \end{enumerate}
+
+    \item Please highlight the primary limitation that stands out to you for each of the discussed methods (greedy decoding and beam search).
+
+\end{enumerate}
+}
+    
+\end{exercise}
+
+\Answer{\hfill
+
+}
+
+
+% Q3
+\begin{exercise}[10-8-12] (\textbf{Temperature in Soft Attention})
+\Exercise{\label{ex:temperature-attention}}
+
+Consider the soft-attention mechanism seen in class. Let
+$h_1,\ldots,h_{T_x}$ be the encoder states for an input sequence of length
+$T_x$. At decoding step $i$, the decoder assigns an alignment score $e_{ij}$
+to each encoder state $h_j$. The corresponding attention weight
+$\alpha_{ij}$ determines the contribution of $h_j$ to the context vector
+$c_i$.
+
+We modify the attention weights by introducing a positive temperature
+$\tau_i>0$:
+\[
+\alpha_{ij}(\tau_i)
+=
+\frac{\exp(e_{ij}/\tau_i)}
+{\sum_{k=1}^{T_x}\exp(e_{ik}/\tau_i)},
+\qquad
+c_i
+=
+\sum_{j=1}^{T_x}\alpha_{ij}(\tau_i)h_j.
+\]
+
+Here, $i$ denotes the decoding step, $j$ denotes a position in the input
+sequence, and $T_x$ is the input sequence length. The attention weights
+satisfy $\sum_{j=1}^{T_x}\alpha_{ij}=1$.
+
+In Questions 1 and 2, we consider a fixed decoding step. To simplify the
+notation, we write
+\[
+e_j := e_{ij},
+\qquad
+\alpha_j := \alpha_{ij},
+\qquad
+\tau := \tau_i,
+\qquad
+c := c_i.
+\]
+
+\begin{enumerate}
+
+    \item \textbf{Effect of the temperature.}
+
+    \begin{enumerate}[label=(\alph*)]
+        \item Consider the alignment scores $e=[2,1,0]$. Compute
+        $\alpha(1)$ and determine
+        \[
+        \lim_{\tau\rightarrow0^+}\alpha(\tau)
+        \qquad\text{and}\qquad
+        \lim_{\tau\rightarrow\infty}\alpha(\tau).
+        \]
+        Give the corresponding limiting context vectors and briefly explain
+        how $\tau$ affects attention selectivity.
+
+        \item For arbitrary alignment scores, show that
+        \[
+        \frac{\partial\alpha_j}{\partial e_k}
+        =
+        \frac{1}{\tau}\alpha_j
+        \left(\delta_{jk}-\alpha_k\right),
+        \]
+        where $\delta_{jk}=1$ if $j=k$ and $0$ otherwise.
+
+        \item Using the previous result, show that
+        \[
+        \frac{\partial c}{\partial e_k}
+        =
+        \frac{\alpha_k}{\tau}(h_k-c).
+        \]
+        Explain what this expression tells us about the effect of increasing
+        $e_k$ on the context vector.
+    \end{enumerate}
+
+    \item \textbf{Scaling the alignment scores.}
+
+    \begin{enumerate}[label=(\alph*)]
+        \item Suppose all alignment scores are multiplied by the same constant
+        $s>0$, such that $e'_j=se_j$, while the temperature changes from
+        $\tau$ to $\tau'$. Find a relationship between $s$, $\tau$, and
+        $\tau'$ such that
+        \[
+        \alpha'_j(\tau')=\alpha_j(\tau)
+        \]
+        for every $j$.
+
+        \item If both the scale of the alignment scores and the temperature
+        are learned, is observing $\tau=0.2$ sufficient to conclude that the
+        model uses highly selective attention? Justify your answer.
+    \end{enumerate}
+
+    \item \textbf{Adaptive temperature.}
+
+    We now return to the original notation, where $i$ denotes the decoding step.
+Consider two designs:
+
+    Consider two designs:
+    \[
+    \text{Design A:}\quad \tau_i=\tau,
+    \qquad
+    \text{Design B:}\quad \tau_i=f(s_{i-1})>0,
+    \]
+    where Design A uses one learned temperature and Design B predicts the
+    temperature from the previous decoder hidden state.
+
+    \begin{enumerate}[label=(\alph*)]
+        \item Give one limitation of Design A and one potential advantage of
+        Design B.
+
+        \item A colleague claims that a small predicted $\tau_i$ means that
+        the model focuses on one encoder state, while a large $\tau_i$ means
+        that it combines several encoder states. Using your previous results,
+        explain why this interpretation may be incorrect.
+    \end{enumerate}
+
+\end{enumerate}
+\end{exercise}
+
+\Answer{
+
+}
+
+
+% Q4
+\begin{exercise}[4-2-4] (\textbf{Optimization and Regularization.})
+\Exercise{\label{ex:optimization-regularization}}
+
+In this question, we consider two approaches to regularization during
+optimization. Let $\theta$ denote the learnable parameters of a neural network
+with loss
+\[
+\mathcal{L}(f(x^{(i)},\theta),y^{(i)}).
+\]
+
+One approach is \textit{weight decay}, which modifies the optimizer update
+rule. At each iteration, the parameters are updated as
+\[
+\theta_{t+1}
+=
+\theta_t-\Delta\theta_t-\lambda\theta_t,
+\]
+where $\Delta\theta_t$ depends on the optimizer. For SGD, it is the product of
+the learning rate and the gradient. For RMSprop and Adam, the update depends on
+moving averages. Refer to the lecture slides for the corresponding update
+rules.
+
+Another approach is $L_2$ regularization, which modifies the loss function:
+\[
+\mathcal{L}_{\mathrm{reg}}
+=
+\mathcal{L}(f(x^{(i)},\theta),y^{(i)})
++
+\gamma\|\theta\|_2^2.
+\]
+
+\begin{enumerate}
+
+    \item Consider the following statement:
+    \begin{quote}
+    ``Using $L_2$ regularization with the usual optimizer update is equivalent
+    to adding weight decay to the optimizer update.''
+    \end{quote}
+
+    Does this statement hold for SGD, RMSprop, and Adam? Provide mathematical
+    arguments for your answers.
+
+    \item We now compare $L_1$ and $L_2$ regularization. The $L_1$-regularized
+    loss is
+    \[
+    \mathcal{L}_{\mathrm{reg}}
+    =
+    \mathcal{L}(f(x^{(i)},\theta),y^{(i)})
+    +
+    \gamma\|\theta\|_1.
+    \]
+
+    Consider a linear regression model with $L_1$ regularization:
+    \[
+    \hat{\beta}
+    =
+    \arg\min_{\beta}
+    \left\{
+    \frac{1}{2}
+    \sum_{i=1}^{N}
+    \left(
+    y_i-\beta_0-\sum_{j=1}^{p}x_{ij}\beta_j
+    \right)^2
+    +
+    \lambda\sum_{j=1}^{p}|\beta_j|
+    \right\}.
+    \]
+
+    The corresponding model with $L_2$ regularization is
+    \[
+    \hat{\beta}
+    =
+    \arg\min_{\beta}
+    \left\{
+    \frac{1}{2}
+    \sum_{i=1}^{N}
+    \left(
+    y_i-\beta_0-\sum_{j=1}^{p}x_{ij}\beta_j
+    \right)^2
+    +
+    \lambda\sum_{j=1}^{p}|\beta_j|^2
+    \right\}.
+    \]
+
+    For two parameters $\beta_0$ and $\beta_1$, prove that the unregularized
+    squared-error loss has elliptical level sets.
+
+    \item Which of $L_1$ and $L_2$ regularization promotes sparsity? Give an
+    informal explanation without going into mathematical details. Which
+    regularizer would you choose for feature subset selection?
+
+\end{enumerate}
+\end{exercise}
+
+\Answer{
+
+}
+% Q5
+
+\begin{exercise}[5-5-5-5]
+(\textbf{Paper Review: Vision Transformer (ViT).})
+
+
+In this question, you are going to write a \textbf{one-page review} of the paper
+\href{https://arxiv.org/abs/2010.11929}
+{An Image Is Worth 16x16 Words: Transformers for Image Recognition at Scale}.
+
+Your review should have the following four sections:
+\textbf{Summary, Strengths, Weaknesses, and Reflections}.
+For each section, we provide guiding questions to consider as you read
+the paper. Use these questions to structure your review rather than
+answering them individually.
+
+\begin{enumerate}[label=(\theexercise.\arabic*)]
+
+    \item \textbf{Summary:}
+    \begin{enumerate}
+        \item What problem does the paper address?
+        \item What are the main contributions?
+        \item How does ViT process images using a Transformer,
+        and how does this differ from convolutional neural networks?
+        \item What are the main experimental results?
+        Focus on facts rather than opinions.
+    \end{enumerate}
+
+    \item \textbf{Strengths:}
+    \begin{enumerate}
+        \item What are the main advantages of the proposed approach?
+        \item Does the paper introduce a significant conceptual
+        or empirical advance?
+        \item Are the experiments well designed and convincing?
+        \item What makes this approach useful for the research community?
+    \end{enumerate}
+
+    \item \textbf{Weaknesses:}
+    \begin{enumerate}
+        \item What are the main limitations of ViT?
+        \item Are there any missing baselines, datasets,
+        or experimental comparisons?
+        \item Are there design choices that are not sufficiently justified?
+        \item How could the proposed method or its evaluation be improved?
+    \end{enumerate}
+
+    \item \textbf{Reflections:}
+    \begin{enumerate}
+        \item How does this paper relate to concepts discussed in class,
+        particularly convolutional networks, attention mechanisms,
+        and Transformers?
+        \item What future research directions could build on this work?
+        \item What new ideas or experiments would you be interested
+        in exploring?
+    \end{enumerate}
+
+\end{enumerate}
+
+This question is subjective, so we will accept a variety of
+well-supported answers. You are expected to critically analyze
+the paper and offer your own perspective and ideas, beyond what
+the paper itself discusses.
+
+\end{exercise}
+
+
+
+
+\end{document}

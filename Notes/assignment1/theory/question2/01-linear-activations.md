@@ -6,7 +6,7 @@
 - **(b)** Explain why adding depth without nonlinear hidden activations does not increase representational capacity.
 
 - [Next: 2.2 — Sigmoid and the gradient bound](02-sigmoid-gradient-bound.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes. **All three parts of Question 2 are fully filled in LaTeX.**
 

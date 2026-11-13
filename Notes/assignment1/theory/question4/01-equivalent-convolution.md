@@ -2,7 +2,7 @@
 
 **Goal:** replace the two convolutions and the average-pooling layer with one exact layer, and give its weights.
 
-- [Assignment statement](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 - [Next: 4.2 — Shapes and parameter counts](02-shapes-and-parameters.md)
 
 **Parts 4.1–4.5 are now filled in LaTeX.** Use valid/no-padding layers and the usual CNN convention of unflipped kernels. The padding defaults stated in 4.2 are separate from this part.

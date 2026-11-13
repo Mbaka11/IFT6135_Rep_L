@@ -2,10 +2,10 @@
 
 **Answer:** the biases of both convolutional layers, because each convolution is immediately followed by BatchNorm.
 
-- [Assignment statement](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 - [Previous: 4.2 — Shapes and parameter counts](02-shapes-and-parameters.md)
 - [Suivant : 4.4 — Champ réceptif](04-receptive-fields.md)
-- [BatchNorm course slide, physical PDF page 66](../../../Slides/Lecture_3_convnets.pdf#page=66)
+- [BatchNorm course slide, physical PDF page 66](../../../../Slides/Lecture_3_convnets.pdf#page=66)
 
 **Part 4.3 is now filled in LaTeX with a concise explanation in words.**
 

@@ -6,7 +6,7 @@
 
 - [Previous: Question 2.3 — ReLU and alternatives](../question2/03-relu-and-variants.md)
 - [Earlier update-rule reminder: Question 1.5](../question1/05-gradient-descent-update.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes. **Question 3 is now fully answered in the LaTeX file.**
 

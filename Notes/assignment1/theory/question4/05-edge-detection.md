@@ -2,7 +2,7 @@
 
 **Objectif :** construire deux kernels $3\times3$ qui signalent les deux sens d’une transition verticale, sans réagir aux régions uniformes ni aux transitions purement horizontales.
 
-- [Énoncé de l’exercice](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Énoncé de l’exercice](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 - [Précédent : 4.4 — Champ réceptif](04-receptive-fields.md)
 - [Rappel : ReLU et activations](../question2/03-relu-and-variants.md)
 

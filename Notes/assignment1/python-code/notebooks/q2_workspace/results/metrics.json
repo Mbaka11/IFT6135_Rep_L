@@ -1,0 +1,35 @@
+{
+  "selected_epoch": 30,
+  "selected_validation_loss": 0.0008144182793330401,
+  "training_seconds": 47.494537099963054,
+  "test_seen": {
+    "loss": 0.0007089882419677451,
+    "accuracy": 1.0,
+    "positive_recall": 1.0,
+    "confusion_matrix": [
+      [
+        256,
+        0
+      ],
+      [
+        0,
+        256
+      ]
+    ]
+  },
+  "test_unseen": {
+    "loss": 0.0007659077527932823,
+    "accuracy": 1.0,
+    "positive_recall": 1.0,
+    "confusion_matrix": [
+      [
+        256,
+        0
+      ],
+      [
+        0,
+        256
+      ]
+    ]
+  }
+}

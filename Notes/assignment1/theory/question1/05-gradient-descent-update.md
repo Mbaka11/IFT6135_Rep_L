@@ -4,7 +4,7 @@
 
 - [Previous: 1.4 — Numerical gradients](04-numerical-gradients.md)
 - [Next: 1.6 — Prediction after the update](06-prediction-after-update.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes. **The LaTeX answer for part (5) contains all four parameter updates.** We update the parameters here; the new forward pass belongs to part (6).
 

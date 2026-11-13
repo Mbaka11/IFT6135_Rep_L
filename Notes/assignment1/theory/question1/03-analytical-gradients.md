@@ -5,7 +5,7 @@
 - [1.1 — Forward pass and notation](01-forward-pass.md)
 - [Previous: 1.2 — Binary cross-entropy derivative](02-cross-entropy-derivative.md)
 - [Next: 1.4 — Numerical gradients](04-numerical-gradients.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes. The LaTeX answer for part (3) now shows explicit component-wise chain-rule products followed by the vector/matrix formulas. **Substituting the assignment's numbers into all parameter gradients belongs to part (4).**
 

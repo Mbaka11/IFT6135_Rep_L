@@ -4,7 +4,7 @@
 
 - [Previous: 1.3 — Analytical gradients](03-analytical-gradients.md)
 - [Next: 1.5 — One gradient-descent update](05-gradient-descent-update.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 
 These are study notes. **The LaTeX answer for part (4) contains the four numerical parameter gradients and their substitutions.** We calculate gradients here; we do not update the parameters until part (5).
 

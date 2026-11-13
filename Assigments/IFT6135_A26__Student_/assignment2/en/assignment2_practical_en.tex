@@ -1,0 +1,513 @@
+\documentclass[12pt]{article}
+\usepackage[canadien]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfigure}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{todonotes}
+\usepackage{hyperref}
+
+% If your paper is accepted, change the options for the package
+% aistats2e as follows:
+%
+%\usepackage[accepted]{aistats2e}
+%
+% This option will print headings for the title of your paper and
+% headings for the authors names, plus a copyright note at the end of
+% the first column of the first page.
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\addtolength{\parskip}{5mm}
+\pagestyle{fancy}
+
+%************
+%* COMMANDS *
+%************
+
+\input{../math_commands.tex}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{booktabs}
+\usepackage[ruled,vlined]{algorithm2e}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}%[chapter]
+\newtheorem{answer}{Answer} % asterisk to remove ordering
+
+\newcommand{\Exercise}[1]{
+\ifexercise#1\fi
+}
+
+\definecolor{answer}{rgb}{0.00, 0.12, 0.60}
+\newcommand{\Answer}[1]{
+\ifsolution\color{answer}\begin{answer}#1\end{answer}\fi
+}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{enumitem}
+\newcommand{\staritem}{
+\addtocounter{enumi}{1}
+\item[$\phantom{x}^{*}$\theenumi]}
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+\begin{document}
+
+
+\fancyhead{}
+\fancyfoot{}
+
+\fancyhead[L]{
+  \begin{tabular}[b]{l}
+    IFT6135-A2026  \\
+    Prof: Aishwarya Agrawal \\
+  \end{tabular}
+}
+\fancyhead[R]{
+  \begin{tabular}[b]{r}
+    Assignment 2 - Programming  \\
+    Recurrent Neural Networks and Transformers  \\
+  \end{tabular}
+}
+\fancyfoot[C]{- Do not distribute -}
+
+\vspace{1cm}
+
+\shorthandoff{:}
+{\textbf{Due Date: November 15th, 2026 at 11:00 pm}}\\
+
+
+\vspace{-0.5cm}
+\underline{Instructions}%
+\renewcommand{\labelitemi}{\textbullet}
+
+\renewcommand{\labelitemi}{\textbullet}
+
+\begin{itemize}
+\item \emph{This assignment is intensive, start well ahead of time!}
+\item \emph{For all questions, show your work.}
+% Link to hw2_student.ipynb (both questions). To keep this link, upload hw2_student.ipynb as a new version of this
+% Drive file (right-click > Manage versions > Upload new version); otherwise paste the new link here.
+\item \emph{The practical part is provided as one Jupyter notebook on Google Colab that contains both questions.} \emph{Save a
+copy in your own Drive before editing, and run it on a GPU (Runtime $\rightarrow$ Change runtime type $\rightarrow$ T4
+GPU). Submit this notebook (File $\rightarrow$ Download $\rightarrow$ Download .ipynb) to Gradescope:
+Questions 1 and 2 are both graded from it.}
+\item \emph{You must also submit your report (PDF) on Gradescope. Your report must contain answers to Questions 1 and 2. You also need to provide your Google Colab notebook with outputs already generated and public accessibility.}
+\item \emph{TAs for this assignment are \textbf{Qichen Huang} and \textbf{Serena Chan}.}
+\end{itemize}
+\vspace{0.2cm}
+
+
+\vspace{0.2cm}
+
+\textbf{Link to Notebook: }\href{https://colab.research.google.com/drive/1U3l83ZcKE-iTDYsCHJfDzjuP3okoZihf?usp=sharing}{Link}
+
+% Q1
+\begin{exercise}[50] \textbf{Learning to Update Memory with LSTMs}
+\Exercise{\label{ex:lstm}
+
+In this question, you will implement an LSTM and investigate whether it can
+retain the latest value of a key after repeated updates and irrelevant inputs.
+You will use PyTorch. Automatic differentiation, \texttt{nn.Linear},
+\texttt{nn.Embedding}, and primitive tensor operations are allowed.
+Do not use \texttt{nn.LSTM}, \texttt{nn.LSTMCell}, other built-in recurrent
+modules, or a dictionary-based lookup inside your model.
+
+\textbf{Provided files.} Question 1 is the first part of the Assignment 2 notebook (link in the instructions), which
+explains the workflow. Complete only the marked TODO blocks of \texttt{lstm.py}, in the notebook cell that starts with
+\texttt{\%\%writefile lstm.py}. Do not edit or delete this first line: the autograder reads your code from this cell.
+\texttt{memory\_data.py}, \texttt{train.py}, and \texttt{test\_public.py} are
+provided. Preserve function signatures, parameter names, and tensor layouts.
+Run the \texttt{lstm.py} cell to create the file, then run the public tests and experiment cells in order.
+
+\subsection*{Task and dataset}
+There are three keys $A,B,C$ and four possible values $0,1,2,3$.
+An update such as $A=2$ is represented by \emph{one} token; keys and values
+are not separate successive tokens. A sequence contains six update tokens,
+followed by $D$ distractor tokens and one query token. Each distractor is
+sampled from four dedicated symbols that carry no update. The target is the
+most recent value assigned to the queried key. For example,
+\[
+ A=1,\ B=0,\ C=2,\ A=3,\ B=1,\ C=0,\ D_0,\ D_2,\ Q_A
+ \quad\longrightarrow\quad 3.
+\]
+The old value $1$ is incorrect, as is $0$, the value of the last update to
+another key. The query is presented only at the end of the sequence.
+
+With zero-indexed key $k$ and value $v$, update tokens have ID $1+4k+v$;
+query tokens have ID $13+k$; distractor IDs are $16,17,18,19$.
+ID $0$ is reserved for right padding, so the vocabulary size is $20$.
+Value labels are $0,1,2,3$. The model receives only token IDs and valid
+sequence lengths, never the dataset's analysis metadata.
+
+The supplied generator creates 6,000 training and 1,200 validation examples.
+Training and validation use $D\in\{0,2,4,8\}$ and
+$R\in\{1,2,3\}$ updates to the queried key. Its last update is at
+zero-indexed position 2, 3, or 4. Remaining updates refer to other keys;
+in particular, the last update token always concerns a different key.
+Consecutive updates to the queried key have different values.
+The generator balances query-key/target-value pairs and rejects duplicate
+token sequences within and across the supplied splits. In training and validation, final update positions are approximately balanced overall, but not guaranteed to be balanced within each $(D,R)$ condition.
+
+\subsection*{Part 1: Implementing the model (30 points)}
+For batch size $B$, embedding dimension $E$, and hidden dimension $H$,
+the cell input is $x_t\in\mathbb{R}^{B\times E}$ and both states have
+shape $B\times H$. Use the gate order $(i,f,g,o)$:
+\[
+ [a_i,a_f,a_g,a_o]=[x_t,h_{t-1}]W^\top+b,
+ \qquad i_t=\sigma(a_i),\ f_t=\sigma(a_f),\ g_t=\tanh(a_g),\ o_t=\sigma(a_o),
+\]
+\[
+ c_t=f_t\odot c_{t-1}+i_t\odot g_t,
+ \qquad h_t=o_t\odot\tanh(c_t).
+\]
+\begin{enumerate}
+\item \textbf{LSTM cell (18 points).} Complete \texttt{LSTMCell.forward}:
+compute the affine gate inputs in the specified order (6), apply the
+appropriate nonlinearities (6), and return the updated hidden and cell states
+(6). The affine layer is already instantiated. Your implementation must
+support batched inputs and preserve autograd, input dtype, and device.
+
+\item \textbf{Sequence model (12 points).} Complete
+\texttt{MemoryLSTM.recurrent} (8) and \texttt{MemoryLSTM.forward} (4).
+Reset the hidden and cell states to zero on every forward call.
+Process valid timesteps in order. At right-padded positions, preserve
+\emph{both} previous states. Return the hidden state after the final valid
+token, including the query. Combine the provided embedding, recurrent cell,
+and classifier to return four raw logits per example, without a final
+softmax. The model uses one recurrent layer, $E=32$ and $H=64$.
+\end{enumerate}
+
+Run \texttt{python -m unittest test\_public -v} before training.
+Public tests are illustrative; separate tests will check numerical values,
+gradients, batch handling, and padding behavior.
+
+\subsection*{Part 2: Training and memory analysis (20 points)}
+Use the provided training script and seed 6135. The configuration is
+20 epochs, batch size 128, Adam with learning rate 0.003, and gradient-norm
+clipping at 1.0. Do not add layers or perform a hyperparameter search.
+Select the checkpoint with the lowest validation cross-entropy, keeping
+the earlier epoch in a tie. Do not use a test set to select a checkpoint.
+CPU execution is supported. The provided evaluation script uses \texttt{model.eval()} and \texttt{torch.no\_grad()} without updating model parameters.
+
+\begin{enumerate}
+\item \textbf{Training and evaluation (6 points).} Report training and
+validation loss and accuracy curves (2), the selected epoch and selection
+rule (2), and the hardware, software versions, total training/validation
+time, and model parameter count (2). Use the supplied notebook outputs directly; no additional experiments are required. Save the supplied run outputs.
+
+\item \textbf{Memory analysis (8 points).} Evaluate the same selected
+checkpoint, without retraining, on the 15 supplied conditions
+$D\in\{0,4,8,16,32\}$ and $R\in\{1,2,3\}$, with 360 examples per
+condition. Here the queried key's final update is balanced across positions
+2, 3, and 4 in every condition. Thus its position distribution is the same
+when comparing different $R$, without exposing one fixed answer position.
+Report an accuracy table and plot accuracy
+against $D$, with one curve per $R$ (3). For $R\geq2$, also report the
+\emph{stale-value rate}: the fraction of all examples in that condition
+whose prediction equals the immediately previous value of the queried key
+(2). Report this rate as not applicable for $R=1$.
+In one short paragraph (about 3--5 sentences), explain the patterns and distinguish observed performance from a guaranteed
+memory capability (3). Identify which distractor lengths were absent from
+training. Do not assume that every increase in $D$ or $R$ must reduce accuracy. Differences across $R$ should be interpreted descriptively, since earlier update patterns and spacing also vary. These results concern distractors after all updates, not distractors interleaved with updates.
+
+\item \textbf{Failure analysis (6 points).} Show two actual errors when at least two exist
+across the test conditions, using the exported example IDs, decoded
+sequences, true labels, predictions, and previous values (3). Prefer different error types when available; both types are not required.
+Distinguish stale-value errors from other errors and give a plausible
+explanation connected to retaining and updating memory in 2--3 sentences per example (3). You do not need to prove the internal cause.
+If fewer than two errors exist, show all available errors and state their
+number; if none exist, show two correct examples and discuss the limits of
+this evidence. Failure to make errors does not lose marks.
+\end{enumerate}
+
+\textbf{Submission.} Submit the notebook (.ipynb) on Gradescope: Part 1 is autograded from the
+\texttt{\%\%writefile lstm.py} cell. Answer Part 2 in your PDF report, including the plots, results table and
+examples produced by the notebook.
+Experimental work is graded on correctness, reproducibility, and
+interpretation, not on reaching a prescribed accuracy.
+}
+\end{exercise}
+
+
+% Q2
+\begin{exercise}[50] \textbf{Word-Level vs.\ Sentence-Level Representation Learning with Transformers}
+\Exercise{\label{ex:transformer}}
+\sloppy
+
+\textbf{Task:} In this question, you will implement a bidirectional Transformer encoder from its equations using
+PyTorch, and train three copies of it on the same sentences with three different objectives: masked language
+modeling (MLM), natural language inference (NLI) classification, and NLI contrastive learning. You will then compare
+what each objective teaches the model, at the level of single words and at the level of whole sentences.
+
+\textbf{Submission:} Question 2 is the second part of the Assignment 2 notebook (link in the instructions). Complete only the
+\texttt{\# TODO} blocks inside the cells whose first line is \texttt{\# GRADED CELL}; everything else is provided. Do
+not edit or delete the \texttt{\# GRADED CELL} lines, and do not change any function names, parameter names or tensor
+layouts. On Gradescope, submit the notebook (the same file as for Question 1), which is autograded for Parts 1 and 2,
+and answer Part 3 in your PDF report.
+
+\textbf{Dataset.}
+
+All three models are trained on the AllNLI corpus (SNLI + MultiNLI): 1{,}147{,}270 unique English sentences of at most
+64 tokens (12.6 on average). Each sentence is lowercased, split into words, and every word is replaced by its id in a
+vocabulary of the $V = 20{,}000$ most frequent words. Ids 0 to 3 are reserved for \texttt{[PAD]}, \texttt{[MASK]},
+\texttt{[CLS]} and \texttt{[UNK]} (words outside the vocabulary), and every sentence starts with \texttt{[CLS]}. The
+three objectives use the same sentences in different forms:
+\begin{itemize}
+  \item \textbf{MLM} uses the sentences on their own, without labels.
+  \item \textbf{NLI classification} uses 942{,}069 (premise, hypothesis, label) pairs, where the label says whether the
+        hypothesis follows from the premise: \emph{entailment}, \emph{neutral} or \emph{contradiction}.
+  \item \textbf{NLI contrastive} uses 557{,}850 (anchor, positive, negative) triplets: a premise, a hypothesis it
+        entails, and a hypothesis it contradicts.
+\end{itemize}
+For evaluation, we use 5{,}000 held-out AllNLI sentences that no model was trained on, and the STS-B benchmark:
+1{,}379 pairs of sentences, each rated by humans from 0 (different meaning) to 5 (same meaning).
+
+\textbf{Notation.}
+
+A batch holds $B$ sentences padded to the same length $T$. $x \in \{0, \dots, V-1\}^{B \times T}$ are the token ids
+and $a \in \{0, 1\}^{B \times T}$ the attention mask ($a_{b,t} = 1$ at real tokens, $0$ at \texttt{[PAD]}). The
+encoder has hidden size $D = 128$, $H = 4$ attention heads of size $d = D/H = 32$, and $L = 4$ blocks. It maps each
+sentence to one hidden vector per token, $O = \mathrm{Enc}(x) \in \mathbb{R}^{T \times D}$ with rows
+$o_1, \dots, o_T$. The three objectives use this output differently:
+\begin{itemize}
+  \item \textbf{MLM} hides some words and predicts each one from its context, from the hidden vector at its position
+        (one prediction per word).
+  \item \textbf{NLI classification} averages the hidden vectors of each sentence into one sentence embedding (mean
+        pooling),
+        \[
+          z = \frac{\sum_{t=1}^{T} a_t\, o_t}{\sum_{t=1}^{T} a_t} \in \mathbb{R}^{D},
+        \]
+        and predicts the NLI label of a pair from the two embeddings, through a small classifier (one prediction per
+        pair of sentences).
+  \item \textbf{NLI contrastive} uses the same sentence embeddings, and trains each sentence to be closer, in cosine
+        similarity, to the sentence it entails than to all the other sentences of the batch (one prediction per
+        sentence).
+\end{itemize}
+The cosine similarity of two vectors $u, v \in \mathbb{R}^D$ is
+$\cos(u, v) = \dfrac{u^\top v}{\|u\|\,\|v\|} \in [-1, 1]$: it is 1 when $u$ and $v$ point the same way, 0 when they
+are perpendicular (aka unrelated), and $-1$ when they point in opposite directions.
+
+\textbf{Part 1: Implementing the model (30 pts).}
+
+\begin{enumerate}
+  \item \textbf{Batching and padding (2 pts).} Implement \texttt{collate(seqs, device)}. Given $B$ token-id sequences
+  $s_1, \dots, s_B$ of lengths $n_1, \dots, n_B$, with $T = \max_b n_b$, return
+  \[
+    x_{b,t} = \begin{cases} s_{b,t} & t \le n_b \\ 0 \ (\texttt{[PAD]}) & t > n_b \end{cases}, \qquad
+    a_{b,t} = \mathbf{1}[t \le n_b].
+  \]
+
+  \item \textbf{Embeddings (4 pts).} Implement \texttt{sinusoidal\_positions(T, D)}, which returns the fixed
+  positional encodings $PE \in \mathbb{R}^{T \times D}$:
+  \[
+    PE_{pos,\,2i} = \sin\!\left(\frac{pos}{10000^{2i/D}}\right), \qquad
+    PE_{pos,\,2i+1} = \cos\!\left(\frac{pos}{10000^{2i/D}}\right),
+  \]
+  for positions $pos = 0, \dots, T-1$ and $i = 0, \dots, \tfrac{D}{2}-1$.
+  Then implement \texttt{Embeddings.forward(ids)}, the input of the first block. With $E \in \mathbb{R}^{V \times D}$
+  the token-embedding matrix and $E_{x_t}$ its row for token $x_t$,
+  \[
+    X_t = \mathrm{Dropout}\big(\sqrt{D}\, E_{x_t} + PE_t\big), \qquad X \in \mathbb{R}^{T \times D}.
+  \]
+
+  \item \textbf{Multi-head attention and the bidirectional mask (7 pts).} Implement
+  \texttt{MultiHeadAttention.forward(x, mask)}. Each head
+  $h = 1, \dots, H$ has its own query, key and value projections, given to you as lists of \texttt{nn.Linear(D, d)}
+  layers \texttt{W\_q[h]}, \texttt{W\_k[h]}, \texttt{W\_v[h]}, and the output projection
+  \texttt{W\_o} is an \texttt{nn.Linear(D, D)}:
+  \[
+    Q_h = W_Q^{(h)}(X), \quad K_h = W_K^{(h)}(X), \quad V_h = W_V^{(h)}(X) \in \mathbb{R}^{T \times d},
+  \]
+  \[
+    A_h = \mathrm{Dropout}\!\left(\mathrm{softmax}\!\left(\frac{Q_h K_h^\top}{\sqrt{d}} + M\right)\right) V_h
+    \in \mathbb{R}^{T \times d},
+  \]
+  \[
+    \mathrm{MHA}(X) = W_O\big([A_1, \dots, A_H]\big) \in \mathbb{R}^{T \times D},
+  \]
+  where the softmax is taken over the keys (each row sums to 1), $[A_1, \dots, A_H]$ concatenates the heads along
+  the feature dimension, and $M \in \mathbb{R}^{T \times T}$ is the attention mask: $M_{t,s} = 0$ if query $t$ may
+  attend to key $s$, and $M_{t,s} = -10^4$ otherwise (its softmax weight becomes $\approx 0$).
+
+
+  Our encoder is bidirectional: every
+  token may attend to every other token, before or after it. The only restriction is padding, which must never be
+  attended to. Implement
+  \texttt{bidirectional\_mask(attention\_mask)}, which returns the boolean mask
+  $m \in \{0, 1\}^{B \times T \times T}$ with $m_{b,t,s} = a_{b,s}$ ($M_{t,s} = 0$ where $m_{b,t,s} = 1$).
+
+  \item \textbf{Encoder block and encoder (8 pts).} Implement \texttt{EncoderBlock.forward(x, mask)}, a post-norm Transformer
+  block:
+  \[
+    X \leftarrow \mathrm{LN}_1\big(X + \mathrm{Dropout}(\mathrm{MHA}(X))\big), \qquad
+    X \leftarrow \mathrm{LN}_2\big(X + \mathrm{Dropout}(\mathrm{FFN}(X))\big),
+  \]
+  where the feed-forward sublayer $\mathrm{FFN}(X) = W_2\, \mathrm{GELU}(W_1 X)$, with hidden size 512, is provided.
+
+
+  Then implement \texttt{Encoder.forward(ids, attention\_mask, return\_logits)}: build
+  the mask, embed the ids, apply the $L$ blocks in order to obtain $O$, then the MLM head. Thus, the score of word $w$ at position $t$ is
+  \[
+    \ell_{t,w} = o_t^\top E_w + c_w, \qquad \ell = O E^\top + c \in \mathbb{R}^{T \times V},
+  \]
+  where $c \in \mathbb{R}^V$ is a learned bias. A word gets a high score when the hidden vector is close to that
+  word's embedding.
+
+  \item \textbf{Masked language modeling (9 pts).} Implement \texttt{mask\_tokens(ids, attention\_mask, vocab\_size, p)} as follows:
+  \begin{enumerate}
+    \item Select each real token independently with probability $p = 0.15$, never \texttt{[PAD]} or a special token
+          (ids 0 to 3, e.g.\ \texttt{[CLS]}). Let $\mathcal{M}$ be the set of selected positions $(b, t)$.
+    \item For each selected position, independently: with probability $0.8$ replace it with \texttt{[MASK]}; with
+          probability $0.1$ replace it with a word id drawn uniformly from $\{4, \dots, V-1\}$; with probability
+          $0.1$ leave it unchanged.
+    \item Return the corrupted ids $\tilde{x}$ and the labels $y$, where $y_{b,t} = x_{b,t}$ at selected positions
+          and $y_{b,t} = -100$ (ignored) elsewhere.
+  \end{enumerate}
+
+
+  Then implement \texttt{cross\_entropy(logits, targets, ignore\_index)} by hand
+  (all three objectives use it). For scores $z \in \mathbb{R}^{N \times C}$ and targets $y \in \{0, \dots, C-1\}^N$,
+  averaged over the rows $\mathcal{K} = \{n : y_n \ne -100\}$:
+  \[
+    \mathcal{L}_{\text{CE}}(z, y) = -\frac{1}{|\mathcal{K}|} \sum_{n \in \mathcal{K}}
+      \left( z_{n, y_n} - \log \sum_{c=1}^{C} e^{z_{n,c}} \right).
+  \]
+  Use \texttt{torch.logsumexp} for the log-sum. Then implement
+  \texttt{mlm\_loss(logits, labels)}, the cross-entropy over the masked positions only. With logits
+  $\ell \in \mathbb{R}^{B \times T \times V}$ computed from the corrupted ids $\tilde{x}$:
+  \[
+    \mathcal{L}_{\text{MLM}} = -\frac{1}{|\mathcal{M}|} \sum_{(b,t) \in \mathcal{M}}
+      \log \mathrm{softmax}(\ell_{b,t})_{\,y_{b,t}}.
+  \]
+
+  \item \textbf{Sentence-level objectives (provided).} Read and understand the provided functions, which you will use in
+  Part 2:
+  \begin{itemize}
+    \item \texttt{mean\_pool} and \texttt{sentence\_embedding}: the sentence embedding $z$ defined above.
+    \item \texttt{pair\_features(u, v)}: the input of the NLI classifier for a premise embedding $u$ and a
+          hypothesis embedding $v$.
+    \item \texttt{info\_nce(z\_a, z\_pos, z\_neg, tau)}: the InfoNCE loss with in-batch and hard negatives. For
+          anchors $z^a_i$, positives $z^+_i$ (entailments) and hard negatives $z^-_i$ (contradictions),
+          $i = 1, \dots, B$, and temperature $\tau = 0.05$:
+          \[
+            \mathcal{L}_{\text{con}} = -\frac{1}{B} \sum_{i=1}^{B} \log
+              \frac{\exp\!\big(\cos(z^a_i, z^+_i)/\tau\big)}
+                   {\sum_{j=1}^{B} \exp\!\big(\cos(z^a_i, z^+_j)/\tau\big)
+                    + \sum_{j=1}^{B} \exp\!\big(\cos(z^a_i, z^-_j)/\tau\big)}.
+          \]
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Part 2: Losses and training (6 pts).}
+
+The training loop (optimizer, logging, validation) is provided. Implement:
+
+\begin{enumerate}
+  \item \textbf{Training step (4 pts).} Implement \texttt{compute\_loss(model, batch, task, vocab\_size, tau)}, which
+  returns the loss of one batch:
+  \begin{itemize}
+    \item \texttt{task = "mlm"}: mask the batch with \texttt{mask\_tokens}, encode the corrupted ids, and
+          return $\mathcal{L}_{\text{MLM}}$.
+    \item \texttt{task = "nli\_cls"}: compute the sentence embeddings $u$ of the premises and $v$ of the hypotheses,
+          and return $\mathcal{L}_{\text{CE}}\big(\texttt{nli\_head}([u;\, v;\, |u - v|]),\ y\big)$, with labels
+          $y \in \{0, 1, 2\}$ (entailment, neutral, contradiction).
+    \item \texttt{task = "contrastive"}: compute the sentence embeddings of the anchors, positives and negatives,
+          and return $\mathcal{L}_{\text{con}}$.
+  \end{itemize}
+
+  \item \textbf{Learning-rate schedule (2 pts).} Implement \texttt{lr\_schedule(step, total\_steps, warmup\_steps)},
+  a linear warmup followed by a cosine decay. At step $s = 0, 1, \dots, S - 1$, with $S$ total steps and $W$ warmup
+  steps, the learning rate is $\eta \cdot m(s)$, where $\eta$ is the peak learning rate and
+  \[
+    m(s) = \begin{cases}
+      \dfrac{s + 1}{W} & \text{if } s < W, \\[2ex]
+      \dfrac{1}{2}\left(1 + \cos\!\left(\pi\, \dfrac{s - W}{S - W}\right)\right) & \text{otherwise.}
+    \end{cases}
+  \]
+\end{enumerate}
+
+Then train the three models with the configuration given in the notebook (about 5 minutes each on a T4): each one
+starts from a random initialization and uses AdamW (peak learning rate $\eta = 5 \times 10^{-4}$, weight decay $0.01$,
+batch size 128, $W = 5\%$ of the steps, gradient clipping at norm 1.0).
+\begin{itemize}
+  \item \textbf{MLM:} trained with $\mathcal{L}_{\text{MLM}}$ for 6{,}000 steps.
+  \item \textbf{NLI classification:} trained with $\mathcal{L}_{\text{CE}}$ on the NLI labels for 5{,}000 steps.
+  \item \textbf{NLI contrastive:} trained with $\mathcal{L}_{\text{con}}$ ($\tau = 0.05$) for 4{,}000 steps.
+\end{itemize}
+An untrained encoder with the same architecture (random initialization) is kept as a baseline.
+
+\textbf{Part 3: Evaluation (14 pts).} Answer in your PDF report. All metrics, tables and plots are computed by
+provided functions in the notebook. Include the outputs each question asks for.
+
+The notebook compares the four models with two metrics:
+\begin{itemize}
+  \item \textbf{Masked-word accuracy}: 15\% of the words of the 5{,}000 held-out sentences are
+        masked as in Part 1, and the accuracy is the fraction of masked positions where the MLM head's top guess,
+        $\arg\max_w \ell_{t,w}$, is the original word.
+  \item \textbf{Cosine of similar vs.\ dissimilar pairs}: let $\mathcal{S}$ be the 338 STS-B
+        pairs rated 4 or more (similar) and $\mathcal{D}$ the 308 pairs rated 1 or less (dissimilar). For a pair of
+        sentences with embeddings $(z, z')$, the notebook reports the mean cosines and their gap,
+        \[
+          \overline{\cos}_{\mathcal{S}} = \frac{1}{|\mathcal{S}|} \sum_{(z, z') \in \mathcal{S}} \cos(z, z'), \qquad
+          \overline{\cos}_{\mathcal{D}} = \frac{1}{|\mathcal{D}|} \sum_{(z, z') \in \mathcal{D}} \cos(z, z'), \qquad
+          \text{gap} = \overline{\cos}_{\mathcal{S}} - \overline{\cos}_{\mathcal{D}}.
+        \]
+        A good sentence embedding gives similar pairs a much higher cosine than dissimilar ones: a large gap.
+\end{itemize}
+
+\begin{enumerate}
+  \item \textbf{Training (2 pts).} Include the loss curves (training and validation loss of each model against
+  training steps).
+  \begin{enumerate}
+    \item Did any of the three models overfit? Justify your answer using the curves.
+  \end{enumerate}
+
+  \item \textbf{Word level vs.\ sentence level (7 pts).} Include the results table, the masked-word accuracy plot,
+  the cosine plot, and the fill-in-the-blank output for the two given sentences and one sentence of your own.
+  \begin{enumerate}
+    \item Which model has the highest masked-word accuracy? Explain. [2 sentences max.]
+    \item Which has the largest cosine gap? Explain. [2 sentences max.]
+  \end{enumerate}
+
+  \item \textbf{Classification vs.\ contrastive (3 pts).} Include the search output for the two given queries and
+  one query of your own.
+  \begin{enumerate}
+    \item Both NLI models were trained on the same sentences with the same labels. Explain the differences in cosine gap and search results. [2 sentences max.]
+  \end{enumerate}
+
+  \item \textbf{Pretraining and fine-tuning (2 pts).} In practice, sentence encoders are first pretrained with MLM
+  and then fine-tuned with a contrastive loss. Based on your results and on the data each objective needs, explain
+  what each stage contributes and why they are applied in this order. [2 sentences max.]
+\end{enumerate}
+
+\end{exercise}
+
+\end{document}

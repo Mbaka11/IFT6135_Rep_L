@@ -7,8 +7,8 @@
 - **(c)** Compare LeakyReLU and Maxout as ways to avoid a fixed flat negative branch.
 
 - [Previous: 2.2 — Sigmoid and the gradient bound](02-sigmoid-gradient-bound.md)
-- [Assignment statement and answer template](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
-- [Course Maxout definition: artificial-neuron slides, physical PDF page 20](../../../Slides/01_artificial_neuron.pdf#page=20)
+- [Assignment statement and answer template](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Course Maxout definition: artificial-neuron slides, physical PDF page 20](../../../../Slides/01_artificial_neuron.pdf#page=20)
 
 These are study notes. **Question 2(3)(a), (b), and (c) are filled in LaTeX. Question 2 is complete.** This is not the separate main Question 3 on gradient descent.
 

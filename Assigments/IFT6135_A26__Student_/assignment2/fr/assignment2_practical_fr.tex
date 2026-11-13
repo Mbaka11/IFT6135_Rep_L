@@ -1,0 +1,529 @@
+\documentclass[12pt]{article}
+\usepackage[canadien]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfigure}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{todonotes}
+\usepackage{hyperref}
+
+% If your paper is accepted, change the options for the package
+% aistats2e as follows:
+%
+%\usepackage[accepted]{aistats2e}
+%
+% This option will print headings for the title of your paper and
+% headings for the authors names, plus a copyright note at the end of
+% the first column of the first page.
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\addtolength{\parskip}{5mm}
+\pagestyle{fancy}
+
+%************
+%* COMMANDS *
+%************
+
+\input{../math_commands.tex}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{booktabs}
+\usepackage[ruled,vlined]{algorithm2e}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}%[chapter]
+\newtheorem{answer}{Answer} % asterisk to remove ordering
+
+\newcommand{\Exercise}[1]{
+\ifexercise#1\fi
+}
+
+\definecolor{answer}{rgb}{0.00, 0.12, 0.60}
+\newcommand{\Answer}[1]{
+\ifsolution\color{answer}\begin{answer}#1\end{answer}\fi
+}
+
+\newif\ifexercise
+\exercisetrue
+%\exercisefalse
+
+\newif\ifsolution
+\solutiontrue
+%\solutionfalse
+
+\usepackage{enumitem}
+\newcommand{\staritem}{
+\addtocounter{enumi}{1}
+\item[$\phantom{x}^{*}$\theenumi]}
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+\begin{document}
+
+
+\fancyhead{}
+\fancyfoot{}
+
+\fancyhead[L]{
+  \begin{tabular}[b]{l}
+    IFT6135-A2026  \\
+    Prof.~: Aishwarya Agrawal \\
+  \end{tabular}
+}
+\fancyhead[R]{
+  \begin{tabular}[b]{r}
+    Devoir 2 - Programmation  \\
+    Réseaux de neurones récurrents et Transformers  \\
+  \end{tabular}
+}
+\fancyfoot[C]{- Ne pas distribuer -}
+
+\vspace{1cm}
+
+\shorthandoff{:}
+{\textbf{Date de remise~: 15 novembre 2026 à 23 h}}\\
+
+
+\vspace{-0.5cm}
+\underline{Instructions}%
+\renewcommand{\labelitemi}{\textbullet}
+
+\renewcommand{\labelitemi}{\textbullet}
+
+\begin{itemize}
+\item \emph{Ce devoir est exigeant, commencez bien à l'avance~!}
+\item \emph{Pour toutes les questions, montrez votre démarche.}
+% Link to hw2_student.ipynb (both questions). To keep this link, upload hw2_student.ipynb as a new version of this
+% Drive file (right-click > Manage versions > Upload new version); otherwise paste the new link here.
+\item \emph{La partie pratique est fournie sous la forme d'un seul notebook Jupyter sur Google Colab, qui contient les
+deux questions~} \emph{. Enregistrez-en une copie dans votre propre Drive avant de le modifier, et exécutez-le sur un GPU
+(Runtime $\rightarrow$ Change runtime type $\rightarrow$ T4 GPU). Remettez ce notebook (File $\rightarrow$ Download
+$\rightarrow$ Download .ipynb) sur Gradescope: les questions 1 et 2 sont toutes deux
+corrigées à partir de celui-ci.}
+\item \emph{Vous devez aussi remettre votre rapport (PDF) sur Gradescope. Votre rapport doit contenir les réponses
+aux questions 1 et 2. Vous devez également fournir votre notebook Google Colab, avec les sorties déjà générées et un
+accès public.}
+\item \emph{Les auxiliaires d'enseignement pour ce devoir sont \textbf{Qichen Huang} et \textbf{Serena Chan}.}
+\end{itemize}
+\vspace{0.2cm}
+
+
+\vspace{0.2cm}
+
+\textbf{Lien vers le notebook: }\href{https://colab.research.google.com/drive/1U3l83ZcKE-iTDYsCHJfDzjuP3okoZihf?usp=sharing}{Lien}
+
+% Q1
+\begin{exercise}[50] \textbf{Apprendre à mettre à jour une mémoire avec des LSTM}
+\Exercise{\label{ex:lstm}
+
+Dans cette question, vous allez implémenter un LSTM et étudier s'il peut retenir la dernière valeur d'une clé après
+des mises à jour répétées et des entrées non pertinentes. Vous utiliserez PyTorch. La différentiation automatique,
+\texttt{nn.Linear}, \texttt{nn.Embedding} et les opérations primitives sur les tenseurs sont permises. N'utilisez pas
+\texttt{nn.LSTM}, \texttt{nn.LSTMCell}, d'autres modules récurrents intégrés, ni une recherche dans un dictionnaire à
+l'intérieur de votre modèle.
+
+\textbf{Fichiers fournis.} La question 1 est la première partie du notebook du devoir 2 (lien dans les
+instructions), qui explique la démarche. Complétez uniquement les blocs TODO indiqués de \texttt{lstm.py}, dans la
+cellule du notebook qui commence par \texttt{\%\%writefile lstm.py}. Ne modifiez ni ne supprimez cette première
+ligne~: le correcteur automatique lit votre code dans cette cellule. \texttt{memory\_data.py}, \texttt{train.py} et
+\texttt{test\_public.py} sont fournis. Conservez les signatures des fonctions, les noms des paramètres et les formats
+des tenseurs. Exécutez la cellule \texttt{lstm.py} pour créer le fichier, puis exécutez dans l'ordre les tests publics
+et les cellules d'expérience.
+
+\subsection*{Tâche et données}
+Il y a trois clés $A$, $B$ et $C$, et quatre valeurs possibles~: $0$, $1$, $2$ et $3$.
+Une mise à jour comme $A=2$ est représentée par \emph{un seul} jeton~; les clés et les valeurs ne sont pas des jetons
+successifs distincts. Une séquence contient six jetons de mise à jour, suivis de $D$ jetons distracteurs et d'un
+jeton de requête. Chaque distracteur est tiré parmi quatre symboles dédiés qui ne portent aucune mise à jour. La
+cible est la valeur la plus récente attribuée à la clé interrogée. Par exemple,
+\[
+ A=1,\ B=0,\ C=2,\ A=3,\ B=1,\ C=0,\ D_0,\ D_2,\ Q_A
+ \quad\longrightarrow\quad 3.
+\]
+L'ancienne valeur $1$ est incorrecte, tout comme $0$, la valeur de la dernière mise à jour d'une autre clé. La
+requête n'est présentée qu'à la fin de la séquence.
+
+Avec une clé $k$ et une valeur $v$ indexées à partir de zéro, les jetons de mise à jour ont l'identifiant $1+4k+v$~;
+les jetons de requête ont l'identifiant $13+k$~; les identifiants des distracteurs sont $16$, $17$, $18$ et $19$.
+L'identifiant $0$ est réservé au remplissage à droite, de sorte que la taille du vocabulaire est $20$. Les étiquettes
+de valeur sont $0$, $1$, $2$ et $3$. Le modèle reçoit uniquement les identifiants des jetons et les longueurs valides
+des séquences, jamais les métadonnées d'analyse du jeu de données.
+
+Le générateur fourni crée 6\,000 exemples d'entraînement et 1\,200 exemples de validation. L'entraînement et la
+validation utilisent $D\in\{0,2,4,8\}$ et $R\in\{1,2,3\}$ mises à jour de la clé interrogée. Sa dernière mise à jour
+est à la position 2, 3 ou 4 (indexée à partir de zéro). Les autres mises à jour concernent d'autres clés~; en
+particulier, le dernier jeton de mise à jour concerne toujours une clé différente. Les mises à jour consécutives de la
+clé interrogée ont des valeurs différentes. Le générateur équilibre les paires (clé interrogée, valeur cible) et
+rejette les séquences de jetons en double, au sein des ensembles fournis et entre eux. En entraînement et en
+validation, les positions de la dernière mise à jour sont approximativement équilibrées dans l'ensemble, mais pas
+forcément au sein de chaque condition $(D,R)$.
+
+\subsection*{Partie 1~: Implémentation du modèle (30 points)}
+Pour une taille de lot $B$, une dimension de plongement $E$ et une dimension cachée $H$, l'entrée de la cellule est
+$x_t\in\mathbb{R}^{B\times E}$ et les deux états sont de forme $B\times H$. Utilisez l'ordre des portes
+$(i,f,g,o)$~:
+\[
+ [a_i,a_f,a_g,a_o]=[x_t,h_{t-1}]W^\top+b,
+ \qquad i_t=\sigma(a_i),\ f_t=\sigma(a_f),\ g_t=\tanh(a_g),\ o_t=\sigma(a_o),
+\]
+\[
+ c_t=f_t\odot c_{t-1}+i_t\odot g_t,
+ \qquad h_t=o_t\odot\tanh(c_t).
+\]
+\begin{enumerate}
+\item \textbf{Cellule LSTM (18 points).} Complétez \texttt{LSTMCell.forward}~: calculez les entrées affines des
+portes dans l'ordre spécifié (6), appliquez les non-linéarités appropriées (6) et retournez les états caché et de
+cellule mis à jour (6). La couche affine est déjà instanciée. Votre implémentation doit prendre en charge les entrées
+en lot et préserver l'autograd, le type de données (\emph{dtype}) de l'entrée et le périphérique (\emph{device}).
+
+\item \textbf{Modèle de séquence (12 points).} Complétez \texttt{MemoryLSTM.recurrent} (8) et
+\texttt{MemoryLSTM.forward} (4). Réinitialisez les états caché et de cellule à zéro à chaque appel de
+\texttt{forward}. Traitez les pas de temps valides dans l'ordre. Aux positions de remplissage à droite, conservez
+\emph{les deux} états précédents. Retournez l'état caché après le dernier jeton valide, requête comprise. Combinez le
+plongement, la cellule récurrente et le classificateur fournis pour retourner quatre logits bruts par exemple, sans
+softmax final. Le modèle utilise une seule couche récurrente, $E=32$ et $H=64$.
+\end{enumerate}
+
+Exécutez \texttt{python -m unittest test\_public -v} avant l'entraînement. Les tests publics sont illustratifs~; des
+tests distincts vérifieront les valeurs numériques, les gradients, le traitement des lots et le comportement avec le
+remplissage.
+
+\subsection*{Partie 2~: Entraînement et analyse de la mémoire (20 points)}
+Utilisez le script d'entraînement fourni et la graine 6135. La configuration est de 20 époques, une taille de lot de
+128, Adam avec un taux d'apprentissage de 0,003 et un écrêtage de la norme du gradient à 1,0. N'ajoutez pas de couches
+et ne faites pas de recherche d'hyperparamètres. Sélectionnez le point de contrôle (\emph{checkpoint}) qui a la plus
+faible entropie croisée de validation, en gardant la première des époques en cas d'égalité. N'utilisez pas d'ensemble
+de test pour sélectionner un point de contrôle. L'exécution sur CPU est possible. Le script d'évaluation fourni
+utilise \texttt{model.eval()} et \texttt{torch.no\_grad()} sans mettre à jour les paramètres du modèle.
+
+\begin{enumerate}
+\item \textbf{Entraînement et évaluation (6 points).} Rapportez les courbes de perte et d'exactitude d'entraînement et
+de validation (2), l'époque sélectionnée et la règle de sélection (2), ainsi que le matériel, les versions des
+logiciels, le temps total d'entraînement et de validation et le nombre de paramètres du modèle (2). Utilisez
+directement les sorties fournies par le notebook~; aucune expérience supplémentaire n'est requise. Conservez les
+sorties de l'exécution.
+
+\item \textbf{Analyse de la mémoire (8 points).} Évaluez le même point de contrôle sélectionné, sans réentraînement,
+sur les 15 conditions fournies $D\in\{0,4,8,16,32\}$ et $R\in\{1,2,3\}$, avec 360 exemples par condition. Ici, la
+dernière mise à jour de la clé interrogée est équilibrée entre les positions 2, 3 et 4 dans chaque condition. Sa
+distribution de positions est donc la même lorsqu'on compare différentes valeurs de $R$, sans révéler une position de
+réponse fixe. Rapportez un tableau d'exactitude et tracez l'exactitude en fonction de $D$, avec une courbe par valeur
+de $R$ (3). Pour $R\geq2$, rapportez aussi le \emph{taux de valeur périmée} (\emph{stale-value rate})~: la proportion
+de tous les exemples de cette condition dont la prédiction est égale à la valeur immédiatement précédente de la clé
+interrogée (2). Indiquez que ce taux ne s'applique pas pour $R=1$. En un court paragraphe (environ 3 à 5 phrases),
+expliquez les tendances et distinguez la performance observée d'une capacité de mémoire garantie (3). Indiquez
+quelles longueurs de distracteurs étaient absentes de l'entraînement. Ne supposez pas que chaque augmentation de $D$
+ou de $R$ doit réduire l'exactitude. Les différences entre les valeurs de $R$ doivent être interprétées de façon
+descriptive, puisque les motifs et l'espacement des mises à jour antérieures varient aussi. Ces résultats portent sur
+des distracteurs placés après toutes les mises à jour, et non sur des distracteurs intercalés entre les mises à jour.
+
+\item \textbf{Analyse des échecs (6 points).} Montrez deux erreurs réelles lorsqu'il en existe au moins deux dans
+l'ensemble des conditions de test, en utilisant les identifiants d'exemples exportés, les séquences décodées, les
+vraies étiquettes, les prédictions et les valeurs précédentes (3). Privilégiez des types d'erreurs différents lorsque
+c'est possible~; les deux types ne sont pas requis. Distinguez les erreurs de valeur périmée des autres erreurs et
+donnez une explication plausible liée à la rétention et à la mise à jour de la mémoire, en 2 ou 3 phrases pour chaque
+exemple (3). Vous n'avez pas à prouver la cause interne. S'il existe moins de deux erreurs, montrez toutes les erreurs
+disponibles et indiquez leur nombre~; s'il n'y en a aucune, montrez deux exemples corrects et discutez des limites de
+cette preuve. Ne faire aucune erreur ne fait pas perdre de points.
+\end{enumerate}
+
+\textbf{Remise.} Remettez le notebook (.ipynb) sur Gradescope~: la partie 1 est corrigée automatiquement à partir de
+la cellule \texttt{\%\%writefile lstm.py}. Répondez à la partie 2 dans votre rapport PDF, en y incluant les
+graphiques, le tableau des résultats et les exemples produits par le notebook.
+Le travail expérimental est évalué selon la justesse, la reproductibilité et l'interprétation, et non selon l'atteinte
+d'une exactitude prescrite.
+}
+\end{exercise}
+
+
+% Q2
+\begin{exercise}[50] \textbf{Apprentissage de représentations au niveau des mots et au niveau des phrases avec des Transformers}
+\Exercise{\label{ex:transformer}}
+\sloppy
+
+\textbf{Tâche~:} Dans cette question, vous allez implémenter un encodeur Transformer bidirectionnel à partir de ses
+équations avec PyTorch, puis en entraîner trois copies sur les mêmes phrases avec trois objectifs différents~: la
+modélisation du langage masqué (MLM), la classification en inférence en langage naturel (NLI) et l'apprentissage
+contrastif NLI. Vous comparerez ensuite ce que chaque objectif apprend au modèle, au niveau des mots individuels et
+au niveau des phrases entières.
+
+\textbf{Remise~:} La question 2 est la deuxième partie du notebook du devoir 2 (lien dans les instructions).
+Complétez uniquement les blocs \texttt{\# TODO} dans les cellules dont la première ligne est
+\texttt{\# GRADED CELL}~; tout le reste est fourni. Ne modifiez ni ne supprimez les lignes \texttt{\# GRADED CELL}, et
+ne changez aucun nom de fonction, nom de paramètre ni format de tenseur. Sur Gradescope, remettez le notebook
+(le même fichier que pour la question 1), qui est corrigé automatiquement pour les parties 1 et 2, et répondez à la
+partie 3 dans votre rapport PDF.
+
+\textbf{Données.}
+
+Les trois modèles sont entraînés sur le corpus AllNLI (SNLI + MultiNLI)~: 1\,147\,270 phrases anglaises distinctes
+d'au plus 64 jetons (12{,}6 en moyenne). Chaque phrase est mise en minuscules et découpée en mots, et chaque mot est
+remplacé par son identifiant dans un vocabulaire des $V = 20\,000$ mots les plus fréquents. Les identifiants 0 à 3
+sont réservés à \texttt{[PAD]}, \texttt{[MASK]}, \texttt{[CLS]} et \texttt{[UNK]} (mots hors vocabulaire), et chaque
+phrase commence par \texttt{[CLS]}. Les trois objectifs utilisent les mêmes phrases sous des formes différentes~:
+\begin{itemize}
+  \item \textbf{MLM} utilise les phrases seules, sans étiquettes.
+  \item \textbf{La classification NLI} utilise 942\,069 paires (prémisse, hypothèse, étiquette), où l'étiquette indique
+        si l'hypothèse découle de la prémisse~: \emph{entailment} (implication), \emph{neutral} (neutre) ou
+        \emph{contradiction}.
+  \item \textbf{L'apprentissage contrastif NLI} utilise 557\,850 triplets (ancre, positif, négatif)~: une prémisse,
+        une hypothèse qu'elle implique et une hypothèse qu'elle contredit.
+\end{itemize}
+Pour l'évaluation, nous utilisons 5\,000 phrases d'AllNLI mises de côté, sur lesquelles aucun modèle n'a été
+entraîné, ainsi que le jeu de référence STS-B~: 1\,379 paires de phrases, chacune notée par des humains de 0 (sens
+différent) à 5 (même sens).
+
+\textbf{Notation.}
+
+Un lot contient $B$ phrases complétées par du remplissage (\emph{padding}) jusqu'à une même longueur $T$.
+$x \in \{0, \dots, V-1\}^{B \times T}$ sont les identifiants des jetons et $a \in \{0, 1\}^{B \times T}$ le masque
+d'attention ($a_{b,t} = 1$ aux vrais jetons, $0$ aux \texttt{[PAD]}). L'encodeur a une dimension cachée $D = 128$,
+$H = 4$ têtes d'attention de dimension $d = D/H = 32$ et $L = 4$ blocs. Il associe à chaque phrase un vecteur caché
+par jeton, $O = \mathrm{Enc}(x) \in \mathbb{R}^{T \times D}$, de lignes $o_1, \dots, o_T$. Les trois objectifs
+utilisent cette sortie différemment~:
+\begin{itemize}
+  \item \textbf{MLM} cache certains mots et prédit chacun d'eux à partir de son contexte, à partir du vecteur caché
+        à sa position (une prédiction par mot).
+  \item \textbf{La classification NLI} fait la moyenne des vecteurs cachés de chaque phrase pour obtenir un seul
+        plongement de phrase (\emph{mean pooling}),
+        \[
+          z = \frac{\sum_{t=1}^{T} a_t\, o_t}{\sum_{t=1}^{T} a_t} \in \mathbb{R}^{D},
+        \]
+        puis prédit l'étiquette NLI d'une paire à partir des deux plongements, au moyen d'un petit classificateur
+        (une prédiction par paire de phrases).
+  \item \textbf{L'apprentissage contrastif NLI} utilise les mêmes plongements de phrases et entraîne chaque phrase à
+        être plus proche, en similarité cosinus, de la phrase qu'elle implique que de toutes les autres phrases du
+        lot (une prédiction par phrase).
+\end{itemize}
+La similarité cosinus de deux vecteurs $u, v \in \mathbb{R}^D$ est
+$\cos(u, v) = \dfrac{u^\top v}{\|u\|\,\|v\|} \in [-1, 1]$~: elle vaut 1 quand $u$ et $v$ pointent dans la même
+direction, 0 quand ils sont perpendiculaires (c.-à-d.\ sans rapport) et $-1$ quand ils pointent dans des directions opposées.
+
+\textbf{Partie 1~: Implémentation du modèle (30 pts).}
+
+\begin{enumerate}
+  \item \textbf{Mise en lots et remplissage (2 pts).} Implémentez \texttt{collate(seqs, device)}. Étant donné $B$
+  séquences d'identifiants $s_1, \dots, s_B$ de longueurs $n_1, \dots, n_B$, avec $T = \max_b n_b$, retournez
+  \[
+    x_{b,t} = \begin{cases} s_{b,t} & t \le n_b \\ 0 \ (\texttt{[PAD]}) & t > n_b \end{cases}, \qquad
+    a_{b,t} = \mathbf{1}[t \le n_b].
+  \]
+
+  \item \textbf{Plongements (4 pts).} Implémentez \texttt{sinusoidal\_positions(T, D)}, qui retourne les encodages
+  positionnels fixes $PE \in \mathbb{R}^{T \times D}$~:
+  \[
+    PE_{pos,\,2i} = \sin\!\left(\frac{pos}{10000^{2i/D}}\right), \qquad
+    PE_{pos,\,2i+1} = \cos\!\left(\frac{pos}{10000^{2i/D}}\right),
+  \]
+  pour les positions $pos = 0, \dots, T-1$ et $i = 0, \dots, \tfrac{D}{2}-1$.
+  Implémentez ensuite \texttt{Embeddings.forward(ids)}, l'entrée du premier bloc. Avec
+  $E \in \mathbb{R}^{V \times D}$ la matrice des plongements de jetons et $E_{x_t}$ sa ligne pour le jeton $x_t$,
+  \[
+    X_t = \mathrm{Dropout}\big(\sqrt{D}\, E_{x_t} + PE_t\big), \qquad X \in \mathbb{R}^{T \times D}.
+  \]
+
+  \item \textbf{Attention multi-têtes et masque bidirectionnel (7 pts).} Implémentez
+  \texttt{MultiHeadAttention.forward(x, mask)}. Chaque tête $h = 1, \dots, H$ a ses propres projections de requête,
+  de clé et de valeur, qui vous sont fournies sous forme de listes de couches \texttt{nn.Linear(D, d)}
+  \texttt{W\_q[h]}, \texttt{W\_k[h]}, \texttt{W\_v[h]}, et la projection de sortie \texttt{W\_o} est une
+  \texttt{nn.Linear(D, D)}~:
+  \[
+    Q_h = W_Q^{(h)}(X), \quad K_h = W_K^{(h)}(X), \quad V_h = W_V^{(h)}(X) \in \mathbb{R}^{T \times d},
+  \]
+  \[
+    A_h = \mathrm{Dropout}\!\left(\mathrm{softmax}\!\left(\frac{Q_h K_h^\top}{\sqrt{d}} + M\right)\right) V_h
+    \in \mathbb{R}^{T \times d},
+  \]
+  \[
+    \mathrm{MHA}(X) = W_O\big([A_1, \dots, A_H]\big) \in \mathbb{R}^{T \times D},
+  \]
+  où le softmax est calculé sur les clés (chaque ligne somme à 1), $[A_1, \dots, A_H]$ concatène les têtes selon la
+  dimension des caractéristiques, et $M \in \mathbb{R}^{T \times T}$ est le masque d'attention~: $M_{t,s} = 0$ si la
+  requête $t$ peut porter attention à la clé $s$, et $M_{t,s} = -10^4$ sinon (son poids après le softmax devient
+  $\approx 0$).
+
+
+  Notre encodeur est bidirectionnel~: chaque jeton peut porter attention à tous les autres jetons, avant ou après
+  lui. La seule restriction est le remplissage, auquel on ne doit jamais porter attention. Implémentez
+  \texttt{bidirectional\_mask(attention\_mask)}, qui retourne le masque booléen
+  $m \in \{0, 1\}^{B \times T \times T}$ avec $m_{b,t,s} = a_{b,s}$ ($M_{t,s} = 0$ là où $m_{b,t,s} = 1$).
+
+  \item \textbf{Bloc d'encodeur et encodeur (8 pts).} Implémentez \texttt{EncoderBlock.forward(x, mask)}, un bloc
+  Transformer à post-normalisation~:
+  \[
+    X \leftarrow \mathrm{LN}_1\big(X + \mathrm{Dropout}(\mathrm{MHA}(X))\big), \qquad
+    X \leftarrow \mathrm{LN}_2\big(X + \mathrm{Dropout}(\mathrm{FFN}(X))\big),
+  \]
+  où la sous-couche à propagation avant $\mathrm{FFN}(X) = W_2\, \mathrm{GELU}(W_1 X)$, de dimension cachée 512, est
+  fournie.
+
+
+  Implémentez ensuite \texttt{Encoder.forward(ids, attention\_mask, return\_logits)}~: construisez le masque,
+  calculez les plongements des identifiants, appliquez les $L$ blocs dans l'ordre pour obtenir $O$, puis la tête MLM.
+  Ainsi, le score du mot $w$ à la position $t$ est
+  \[
+    \ell_{t,w} = o_t^\top E_w + c_w, \qquad \ell = O E^\top + c \in \mathbb{R}^{T \times V},
+  \]
+  où $c \in \mathbb{R}^V$ est un biais appris. Un mot obtient un score élevé quand le vecteur caché est proche du
+  plongement de ce mot.
+
+  \item \textbf{Modélisation du langage masqué (9 pts).} Implémentez
+  \texttt{mask\_tokens(ids, attention\_mask, vocab\_size, p)} comme suit~:
+  \begin{enumerate}
+    \item Sélectionnez chaque vrai jeton indépendamment avec probabilité $p = 0{,}15$, jamais un \texttt{[PAD]} ni
+          un jeton spécial (identifiants 0 à 3, p.\ ex.\ \texttt{[CLS]}). Soit $\mathcal{M}$ l'ensemble des
+          positions $(b, t)$ sélectionnées.
+    \item Pour chaque position sélectionnée, indépendamment~: avec probabilité $0{,}8$, remplacez-la par
+          \texttt{[MASK]}~; avec probabilité $0{,}1$, remplacez-la par un identifiant de mot tiré uniformément dans
+          $\{4, \dots, V-1\}$~; avec probabilité $0{,}1$, laissez-la inchangée.
+    \item Retournez les identifiants corrompus $\tilde{x}$ et les étiquettes $y$, où $y_{b,t} = x_{b,t}$ aux
+          positions sélectionnées et $y_{b,t} = -100$ (ignorée) ailleurs.
+  \end{enumerate}
+
+
+  Implémentez ensuite \texttt{cross\_entropy(logits, targets, ignore\_index)} à la main (les trois objectifs
+  l'utilisent). Pour des scores $z \in \mathbb{R}^{N \times C}$ et des cibles $y \in \{0, \dots, C-1\}^N$, en
+  moyenne sur les lignes $\mathcal{K} = \{n : y_n \ne -100\}$~:
+  \[
+    \mathcal{L}_{\text{CE}}(z, y) = -\frac{1}{|\mathcal{K}|} \sum_{n \in \mathcal{K}}
+      \left( z_{n, y_n} - \log \sum_{c=1}^{C} e^{z_{n,c}} \right).
+  \]
+  Utilisez \texttt{torch.logsumexp} pour le log de la somme. Implémentez ensuite
+  \texttt{mlm\_loss(logits, labels)}, l'entropie croisée sur les positions masquées seulement. Avec les logits
+  $\ell \in \mathbb{R}^{B \times T \times V}$ calculés à partir des identifiants corrompus $\tilde{x}$~:
+  \[
+    \mathcal{L}_{\text{MLM}} = -\frac{1}{|\mathcal{M}|} \sum_{(b,t) \in \mathcal{M}}
+      \log \mathrm{softmax}(\ell_{b,t})_{\,y_{b,t}}.
+  \]
+
+  \item \textbf{Objectifs au niveau des phrases (fournis).} Lisez et comprenez les fonctions fournies, que vous utiliserez
+  dans la partie 2~:
+  \begin{itemize}
+    \item \texttt{mean\_pool} et \texttt{sentence\_embedding}~: le plongement de phrase $z$ défini plus haut.
+    \item \texttt{pair\_features(u, v)}~: l'entrée du classificateur NLI pour un plongement de prémisse $u$ et un
+          plongement d'hypothèse $v$.
+    \item \texttt{info\_nce(z\_a, z\_pos, z\_neg, tau)}~: la perte InfoNCE avec négatifs du lot et négatifs
+          difficiles. Pour des ancres $z^a_i$, des positifs $z^+_i$ (implications) et des négatifs difficiles
+          $z^-_i$ (contradictions), $i = 1, \dots, B$, et une température $\tau = 0{,}05$~:
+          \[
+            \mathcal{L}_{\text{con}} = -\frac{1}{B} \sum_{i=1}^{B} \log
+              \frac{\exp\!\big(\cos(z^a_i, z^+_i)/\tau\big)}
+                   {\sum_{j=1}^{B} \exp\!\big(\cos(z^a_i, z^+_j)/\tau\big)
+                    + \sum_{j=1}^{B} \exp\!\big(\cos(z^a_i, z^-_j)/\tau\big)}.
+          \]
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Partie 2~: Pertes et entraînement (6 pts).}
+
+La boucle d'entraînement (optimiseur, journalisation, validation) est fournie. Implémentez~:
+
+\begin{enumerate}
+  \item \textbf{Étape d'entraînement (4 pts).} Implémentez \texttt{compute\_loss(model, batch, task, vocab\_size, tau)},
+  qui retourne la perte d'un lot~:
+  \begin{itemize}
+    \item \texttt{task = "mlm"}~: masquez le lot avec \texttt{mask\_tokens}, encodez les identifiants
+          corrompus et retournez $\mathcal{L}_{\text{MLM}}$.
+    \item \texttt{task = "nli\_cls"}~: calculez les plongements de phrases $u$ des prémisses et $v$ des hypothèses,
+          et retournez $\mathcal{L}_{\text{CE}}\big(\texttt{nli\_head}([u;\, v;\, |u - v|]),\ y\big)$, avec les
+          étiquettes $y \in \{0, 1, 2\}$ (implication, neutre, contradiction).
+    \item \texttt{task = "contrastive"}~: calculez les plongements de phrases des ancres, des positifs et des
+          négatifs, et retournez $\mathcal{L}_{\text{con}}$.
+  \end{itemize}
+
+  \item \textbf{Calendrier du taux d'apprentissage (2 pts).} Implémentez
+  \texttt{lr\_schedule(step, total\_steps, warmup\_steps)}, un préchauffage linéaire suivi d'une décroissance en
+  cosinus. À l'étape $s = 0, 1, \dots, S - 1$, avec $S$ étapes au total et $W$ étapes de préchauffage, le taux
+  d'apprentissage est $\eta \cdot m(s)$, où $\eta$ est le taux d'apprentissage maximal et
+  \[
+    m(s) = \begin{cases}
+      \dfrac{s + 1}{W} & \text{si } s < W, \\[2ex]
+      \dfrac{1}{2}\left(1 + \cos\!\left(\pi\, \dfrac{s - W}{S - W}\right)\right) & \text{sinon.}
+    \end{cases}
+  \]
+\end{enumerate}
+
+Entraînez ensuite les trois modèles avec la configuration donnée dans le notebook (environ 5 minutes chacun sur un
+T4)~: chacun part d'une initialisation aléatoire et utilise AdamW (taux d'apprentissage maximal
+$\eta = 5 \times 10^{-4}$, décroissance des poids (\emph{weight decay}) $0{,}01$, taille de lot 128, $W = 5\,\%$ des
+étapes, écrêtage du gradient à une norme de 1{,}0).
+\begin{itemize}
+  \item \textbf{MLM~:} entraîné avec $\mathcal{L}_{\text{MLM}}$ pendant 6\,000 étapes.
+  \item \textbf{Classification NLI~:} entraîné avec $\mathcal{L}_{\text{CE}}$ sur les étiquettes NLI pendant
+        5\,000 étapes.
+  \item \textbf{Contrastif NLI~:} entraîné avec $\mathcal{L}_{\text{con}}$ ($\tau = 0{,}05$) pendant 4\,000 étapes.
+\end{itemize}
+Un encodeur non entraîné de même architecture (initialisation aléatoire) est conservé comme point de comparaison.
+
+\textbf{Partie 3~: Évaluation (14 pts).} Répondez dans votre rapport PDF. Toutes les métriques, tous les tableaux et
+tous les graphiques sont calculés par des fonctions fournies dans le notebook. Incluez les sorties demandées par
+chaque question.
+
+Le notebook compare les quatre modèles selon deux métriques~:
+\begin{itemize}
+  \item \textbf{Exactitude sur les mots masqués}~: 15\,\% des mots des 5\,000 phrases mises de côté sont masqués
+        comme dans la partie 1, et l'exactitude est la proportion des positions masquées où la meilleure prédiction
+        de la tête MLM, $\arg\max_w \ell_{t,w}$, est le mot original.
+  \item \textbf{Cosinus des paires similaires et dissimilaires}~: soit $\mathcal{S}$ les 338 paires de STS-B notées
+        4 ou plus (similaires) et $\mathcal{D}$ les 308 paires notées 1 ou moins (dissimilaires). Pour une paire de
+        phrases de plongements $(z, z')$, le notebook rapporte les cosinus moyens et leur écart,
+        \[
+          \overline{\cos}_{\mathcal{S}} = \frac{1}{|\mathcal{S}|} \sum_{(z, z') \in \mathcal{S}} \cos(z, z'), \qquad
+          \overline{\cos}_{\mathcal{D}} = \frac{1}{|\mathcal{D}|} \sum_{(z, z') \in \mathcal{D}} \cos(z, z'), \qquad
+          \text{écart} = \overline{\cos}_{\mathcal{S}} - \overline{\cos}_{\mathcal{D}}.
+        \]
+        Un bon plongement de phrase donne aux paires similaires un cosinus beaucoup plus élevé qu'aux paires
+        dissimilaires~: un grand écart.
+\end{itemize}
+
+\begin{enumerate}
+  \item \textbf{Entraînement (2 pts).} Incluez les courbes de perte (perte d'entraînement et de validation de chaque
+  modèle en fonction des étapes d'entraînement).
+  \begin{enumerate}
+    \item L'un des trois modèles a-t-il surajusté~? Justifiez votre réponse à l'aide des courbes.
+  \end{enumerate}
+
+  \item \textbf{Niveau des mots et niveau des phrases (7 pts).} Incluez le tableau des résultats, le graphique de
+  l'exactitude sur les mots masqués, le graphique des cosinus, et la sortie du texte à trous pour les deux phrases
+  données et une phrase de votre choix.
+  \begin{enumerate}
+    \item Quel modèle a la meilleure exactitude sur les mots masqués~? Expliquez. [2 phrases max.]
+    \item Lequel a le plus grand écart de cosinus~? Expliquez. [2 phrases max.]
+  \end{enumerate}
+
+  \item \textbf{Classification et apprentissage contrastif (3 pts).} Incluez la sortie de la recherche pour les deux
+  requêtes données et une requête de votre choix.
+  \begin{enumerate}
+    \item Les deux modèles NLI ont été entraînés sur les mêmes phrases avec les mêmes étiquettes. Expliquez les
+          différences d'écart de cosinus et de résultats de recherche. [2 phrases max.]
+  \end{enumerate}
+
+  \item \textbf{Pré-entraînement et affinage (2 pts).} En pratique, les encodeurs de phrases sont d'abord
+  pré-entraînés avec MLM, puis affinés avec une perte contrastive. À partir de vos résultats et des données dont
+  chaque objectif a besoin, expliquez ce que chaque étape apporte et pourquoi elles sont appliquées dans cet ordre.
+  [2 phrases max.]
+\end{enumerate}
+
+\end{exercise}
+
+\end{document}

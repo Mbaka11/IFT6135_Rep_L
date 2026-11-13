@@ -2,10 +2,10 @@
 
 **Objectif :** suivre ce que chaque couche transforme, puis distinguer la taille des données produites du nombre de valeurs apprises.
 
-- [Énoncé de l’exercice](../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
+- [Énoncé de l’exercice](../../../../Assigments/IFT6135_A26__Student_/assignment1/en/assignment1_theory_en.tex)
 - [Précédent : 4.1 — Convolution équivalente](01-equivalent-convolution.md)
 - [Suivant : 4.3 — Biais supprimables](03-biases-before-batchnorm.md)
-- [Pooling dans le cours, page PDF 47](../../../Slides/Lecture_3_convnets.pdf#page=47)
+- [Pooling dans le cours, page PDF 47](../../../../Slides/Lecture_3_convnets.pdf#page=47)
 
 **La réponse 4.2 est remplie en LaTeX et corrigée selon la clarification de l’enseignant : `MaxPooling(N)` utilise un stride de $N$ et aucun padding.** L’ancienne lecture avec padding 1/stride 1 pour le pooling n’est plus à retenir.
 

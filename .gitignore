@@ -2,6 +2,8 @@
 .DS_Store
 Thumbs.db
 Desktop.ini
+__MACOSX/
+._*
 .idea/
 .vscode/
 *~
@@ -52,3 +54,10 @@ wandb/
 *.ckpt
 *.pt
 *.pth
+
+# Generated experiment artifacts (keep code, notebooks and CSV/JSON summaries)
+**/[Rr]esults/denoisers/
+**/[Rr]esults/*.png
+**/[Rr]esults/*.npy
+**/[Rr]esults/*.npz
+*_results.zip
