@@ -1,5 +1,5 @@
 \documentclass[12pt]{article}
-\usepackage[canadien]{babel} 
+\usepackage[french]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{fancyhdr}
@@ -30,6 +30,7 @@
 \setlength{\textwidth}{17.78cm}
 \addtolength{\topmargin}{-2.25cm}
 \setlength{\textheight}{23.24cm}
+\setlength{\headheight}{30pt}
 \addtolength{\parskip}{5mm}
 \pagestyle{fancy}
 
@@ -37,7 +38,7 @@
 %* COMMANDS *
 %************
 
-\input{../math_commands.tex}
+\input{../../math_commands.tex}
 
 \newif\ifexercise
 \exercisetrue
@@ -79,6 +80,12 @@
 \addtocounter{enumi}{1}
 \item[$\phantom{x}^{*}$\theenumi]}
 \setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+
+% Dependencies used by the supplied algorithm, decoding tree and paper link.
+\newcommand{\blank}{\underline{\hspace{2.1cm}}}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{hyperref}
 
 \begin{document}
 
@@ -184,13 +191,13 @@ Complete the blanks in the skeleton below.
     \DontPrintSemicolon
     \KwIn{Inputs $\vx_1, \dots, \vx_L \in \R^{d}$, weights $\mW_Q, \mW_K \in \R^{d \times d}$ and $\mW_V \in \R^{d \times d}$}
     \KwOut{Outputs $\vo_1, \dots, \vo_L \in \R^{d}$}
-    Initialization: $\mS_{0} \leftarrow \blank$\;
+    Initialization: $\mS_{0} \leftarrow \textcolor{answer}{\mathbf{0}_{d\times d}}$\;
     \For{$t = 1$ \KwTo $L$}{
       Compute the query, key and value: $\vq_t \leftarrow \mW_Q \vx_t$, $\vk_t \leftarrow \mW_K \vx_t$, $\vv_t \leftarrow \mW_V \vx_t$\;
-      %Update the hidden state: $\mS_{t} \leftarrow \blank$\;
-      %Compute the output: $\vo_{t} \leftarrow \blank$\;
-      Complete this part
+      \textcolor{answer}{Update the hidden state: $\mS_{t} \leftarrow \mS_{t-1}+\vv_t\vk_t^\top$}\;
+      \textcolor{answer}{Compute the output: $\vo_{t} \leftarrow \mS_t\vq_t$}\;
     }
+    \textcolor{answer}{\Return{$\vo_1,\ldots,\vo_L$}}\;
     \caption{Linear attention, recurrent form}
     \label{alg:linear-rnn}
     \end{algorithm}
@@ -224,9 +231,9 @@ Justify your answers briefly, and comment on the dependence on $L$.
     \toprule
     Method & Time Complexity & Sequential Operations \\
     \midrule
-    Softmax attention (Classic transformer) & & \\
-    Linear RNN, recurrent form (Question~2) & & \\
-    Linear RNN, parallel form~\eqref{eq:parallel} (Question~3) & & \\
+    Softmax attention (Classic transformer) & \textcolor{answer}{$O(L^2d)$} & \textcolor{answer}{$O(1)$} \\
+    Linear RNN, recurrent form (Question~2) & \textcolor{answer}{$O(Ld^2)$} & \textcolor{answer}{$O(L)$} \\
+    Linear RNN, parallel form~\eqref{eq:parallel} (Question~3) & \textcolor{answer}{$O(L^2d)$} & \textcolor{answer}{$O(1)$} \\
     \bottomrule
 \end{tabular}
 \end{center}
@@ -238,8 +245,80 @@ Justify your answers briefly, and comment on the dependence on $L$.
 
 \end{exercise}
 
-\Answer{\hfill
+\Answer{
+\leavevmode\par\nopagebreak[4]
+\begin{enumerate}[label=\textbf{(\arabic*)}, leftmargin=*]
+    \item \textbf{Linear attention.}\nopagebreak[4]
 
+    Replacing the exponentials with dot products and taking the common
+    denominator outside the sum gives
+    \[
+        \vo_t=\frac{\sum_{i=1}^{t}(\vk_i^\top\vq_t)\vv_i}
+        {\sum_{j=1}^{t}\vk_j^\top\vq_t}.
+    \]
+    Since $\vk_i^\top\vq_t$ is a scalar, associativity gives
+    $(\vk_i^\top\vq_t)\vv_i=(\vv_i\vk_i^\top)\vq_t$.
+    Factoring out the common query $\vq_t$ from both sums, we obtain
+    \[
+        \vo_t
+        =\frac{\left(\sum_{i=1}^{t}\vv_i\vk_i^\top\right)\vq_t}
+        {\left(\sum_{j=1}^{t}\vk_j\right)^\top\vq_t}
+        =\boxed{\frac{\mS_t\vq_t}{\vz_t^\top\vq_t}}.
+    \]
+    This expression is defined when $\vz_t^\top\vq_t\ne0$; unlike
+    softmax scores, dot products may sum to zero.
+    \item \textbf{Recurrent form.}\nopagebreak[4]
+
+    Separating the final term in the state sum gives
+    \[
+        \mS_t=\sum_{i=1}^{t}\vv_i\vk_i^\top
+        =\underbrace{\sum_{i=1}^{t-1}\vv_i\vk_i^\top}_{\mS_{t-1}}
+        +\vv_t\vk_t^\top
+        =\mS_{t-1}+\vv_t\vk_t^\top,
+        \qquad \mS_0=\mathbf{0}_{d\times d}.
+    \]
+    The completed algorithm above updates the state before computing
+    $\vo_t=\mS_t\vq_t$, so the current position is included. It processes
+    each position once, giving work linear in $L$ for fixed $d$.
+    \item \textbf{Parallel form.}\nopagebreak[4]
+
+    Let $\mA=(\mQ\mK^\top)\odot\mM$. Its entry in row $t$, column $i$ is
+    \[
+        A_{ti}=(\vq_t^\top\vk_i)M_{ti}
+        =\begin{cases}
+            \vq_t^\top\vk_i,&i\leq t,\\
+            0,&i>t.
+        \end{cases}
+    \]
+    Thus row $t$ of $\mA\mV$ is a weighted sum of the value rows. Its
+    transpose is
+    \[
+        \bigl((\mA\mV)_{t,:}\bigr)^\top
+        =\sum_{i=1}^{t}\vv_i(\vk_i^\top\vq_t)
+        =\left(\sum_{i=1}^{t}\vv_i\vk_i^\top\right)\vq_t
+        =\mS_t\vq_t=\vo_t.
+    \]
+    Every row therefore matches the corresponding output, so
+    \[
+        \boxed{\mO=(\mQ\mK^\top\odot\mM)\mV}.
+    \]
+    Here $\mQ\mK^\top$ and $\mM$ are $L\times L$, while $\mV$ and
+    $\mO$ are $L\times d$ under the given dimensions ($d_v=d$).
+    \newpage
+    \item \textbf{Complexity.}\nopagebreak[4]
+
+    Both matrix forms compute an $L\times L$ score matrix and multiply it
+    by $\mV$, giving $O(L^2d)$ work. Softmax adds $O(L^2)$ work. The
+    recurrent form updates and reads a $d\times d$ state at each of the
+    $L$ positions, giving $O(Ld^2)$ work.
+
+    For the sequential counts, assume the full sequence is available and
+    count each parallel matrix operation or softmax as one stage. The matrix
+    forms then use $O(1)$ stages, while the recurrent loop uses $O(L)$ because
+    $\mS_t$ depends on $\mS_{t-1}$. This does not count the internal depth
+    of the matrix operations. For fixed $d$, the recurrent work is linear in
+    $L$, while the work of the matrix forms is quadratic.
+\end{enumerate}
 }
 % Q2
 \begin{exercise}[1-1-4-6-2] (\textbf{Decoding.})
@@ -340,7 +419,112 @@ For clarity we will drop the explicit conditioning on $w_{0}$, assuming from now
     
 \end{exercise}
 
-\Answer{\hfill
+\Answer{
+\leavevmode\par\nopagebreak[4]
+\begin{enumerate}[label=\textbf{(\arabic*)}, leftmargin=*]
+    \item \textbf{Counting sequences.}\nopagebreak[4]
+
+    The \texttt{<BOS>} token is fixed at position $w_0$. Each of the remaining $T$ positions has $N$ possible tokens, so there are
+    \[
+        \boxed{N^T}
+    \]
+    possible sequences. This count allows any vocabulary token at each generated position; if \texttt{<BOS>} is forbidden after $w_0$, the count is $(N-1)^T$ instead.
+
+    \item \textbf{Exhaustive enumeration.}\nopagebreak[4]
+
+    Exhaustive search evaluates all $N^T$ possible continuations and selects
+    the one with the highest joint probability. This is impractical for
+    realistic sequence lengths and vocabulary sizes: the number of candidates
+    grows exponentially with $T$ (and as $N^T$ with vocabulary size $N$).
+
+    \item \textbf{Beam search complexity.}\nopagebreak[4]
+
+    At each of the $T$ steps, the algorithm scores $BN$ candidates. If we
+    sort them once to select the best $B$, and copy the selected prefixes,
+    the time complexity is
+    \[
+        O\bigl(TBN\log(BN)+BT^2\bigr).
+    \]
+    The candidate scores and the $B$ sequences require $O(BN+BT)$ space.
+    These bounds assume that each conditional log-probability is available
+    in constant time; they exclude the cost of evaluating and storing the
+    language model. Other selection and prefix-storage methods can give
+    different bounds.
+
+    Beam search considers far fewer sequences than exhaustive search, but
+    it still scores $BN$ candidates at every step. It can be practical with
+    a modest beam width, although a large vocabulary increases the cost.
+
+    \newpage
+    \item \textbf{Greedy and beam search on the tree.}\nopagebreak[4]
+    \begin{enumerate}[label=\textbf{(\alph*)}, leftmargin=*]
+        \item \textbf{Greedy decoding.}\nopagebreak[4]
+
+        Choosing the largest outgoing log-probability at each step gives
+        \[
+            \texttt{the} \;\to\; \texttt{red} \;\to\; \texttt{rectangle},
+            \qquad \log p=-1.5-3.1-4.5=\boxed{-9.1}.
+        \]
+
+        \item \textbf{Beam search with $B=2$.}\nopagebreak[4]
+
+        Starting with one active \texttt{<BOS>} prefix, we keep the two
+        highest-scoring distinct prefixes at each step. Scores are cumulative
+        log-likelihoods, and selection is across all candidates.
+
+        \textbf{Step 1.}
+        \begin{center}
+        \begin{tabular}{lcc}
+        \toprule
+        Candidate & Score & Kept? \\
+        \midrule
+        \texttt{the} & $-1.5$ & Yes \\
+        \texttt{a} & $-1.8$ & Yes \\
+        \bottomrule
+        \end{tabular}
+        \end{center}
+
+        \textbf{Step 2.}
+        \begin{center}
+        \begin{tabular}{llcc}
+        \toprule
+        Candidate & Calculation & Score & Kept? \\
+        \midrule
+        \texttt{the green} & $-1.5-3.4$ & $-4.9$ & No \\
+        \texttt{the red} & $-1.5-3.1$ & $-4.6$ & No \\
+        \texttt{a blue} & $-1.8-2.5$ & $-4.3$ & Yes \\
+        \texttt{a red} & $-1.8-2.7$ & $-4.5$ & Yes \\
+        \bottomrule
+        \end{tabular}
+        \end{center}
+
+        \textbf{Step 3.}
+        \begin{center}
+        \begin{tabular}{llcc}
+        \toprule
+        Candidate & Calculation & Score & Kept? \\
+        \midrule
+        \texttt{a blue ellipse} & $-4.3-5.4$ & $-9.7$ & No \\
+        \texttt{a blue square} & $-4.3-5.0$ & $-9.3$ & Yes \\
+        \texttt{a red circle} & $-4.5-4.9$ & $-9.4$ & Yes \\
+        \texttt{a red square} & $-4.5-5.1$ & $-9.6$ & No \\
+        \bottomrule
+        \end{tabular}
+        \end{center}
+
+        Thus the two sequences are \texttt{a blue square} and
+        \texttt{a red circle}, with log-likelihoods $-9.3$ and $-9.4$.
+        The given initialization uses two identical \texttt{<BOS>} beams;
+        without deduplication, ties may instead produce duplicate sequences.
+    \end{enumerate}
+
+    \item \textbf{Limitations.}\nopagebreak[4]
+
+    Greedy decoding commits to the best next token at each step, so an
+    early choice can rule out the most likely complete sequence. Beam search
+    keeps more alternatives, but it can still discard a prefix that would
+    lead to a better sequence. Neither method guarantees the global optimum.
+\end{enumerate}
 
 }
 
@@ -464,7 +648,93 @@ Consider two designs:
 \end{exercise}
 
 \Answer{
+\leavevmode\par\nopagebreak[4]
+\begin{enumerate}[label=\textbf{(\arabic*)}, leftmargin=*]
+    \item \textbf{Effect of the temperature.}\nopagebreak[4]
+    \begin{enumerate}[label=\textbf{(\alph*)}, leftmargin=*]
+        \item At $\tau=1$, the attention weights are
+        \[
+            \alpha(1)=\frac{[e^2,e,1]}{e^2+e+1}
+            \approx [0.6652,\,0.2447,\,0.0900].
+        \]
+        Since $e_1=2$ is the unique maximum, the limiting weights and
+        context vectors are
+        \[
+        \begin{aligned}
+            \lim_{\tau\to0^+}\alpha(\tau)&=[1,0,0],
+            &\qquad \lim_{\tau\to0^+}c(\tau)&=h_1,\\
+            \lim_{\tau\to\infty}\alpha(\tau)&=[\tfrac13,\tfrac13,\tfrac13],
+            &\qquad \lim_{\tau\to\infty}c(\tau)&=\tfrac13(h_1+h_2+h_3).
+        \end{aligned}
+        \]
+        For fixed scores, a lower temperature makes attention more selective,
+        while a higher temperature makes it more uniform.
 
+        \item Let $Z=\sum_r\exp(e_r/\tau)$. With $\tau$ fixed,
+        \[
+            \frac{\partial\exp(e_j/\tau)}{\partial e_k}
+            =\frac{\delta_{jk}}{\tau}\exp(e_j/\tau),
+            \qquad
+            \frac{\partial Z}{\partial e_k}
+            =\frac{1}{\tau}\exp(e_k/\tau).
+        \]
+        The quotient rule then gives
+        \[
+        \begin{aligned}
+            \frac{\partial\alpha_j}{\partial e_k}
+            &=\frac{1}{\tau}\left(
+            \delta_{jk}\frac{\exp(e_j/\tau)}{Z}
+            -\frac{\exp(e_j/\tau)\exp(e_k/\tau)}{Z^2}\right)\\
+            &=\boxed{\frac{1}{\tau}\alpha_j(\delta_{jk}-\alpha_k)}.
+        \end{aligned}
+        \]
+
+        \item Holding the encoder states fixed, we obtain
+        \[
+        \begin{aligned}
+            \frac{\partial c}{\partial e_k}
+            &=\sum_j h_j\frac{\partial\alpha_j}{\partial e_k}\\
+            &=\frac{1}{\tau}\left(\alpha_k h_k
+              -\alpha_k\sum_j\alpha_jh_j\right)
+            =\boxed{\frac{\alpha_k}{\tau}(h_k-c)}.
+        \end{aligned}
+        \]
+        Increasing $e_k$ moves the context locally toward $h_k$; if
+        $h_k=c$, the first-order change is zero.
+    \end{enumerate}
+
+    \item \textbf{Scaling the alignment scores.}\nopagebreak[4]
+    \begin{enumerate}[label=\textbf{(\alph*)}, leftmargin=*]
+        \item Choose $\boxed{\tau'=s\tau}$. Then, for every $j$,
+        \[
+            \frac{e'_j}{\tau'}=\frac{se_j}{s\tau}=\frac{e_j}{\tau},
+        \]
+        so the softmax inputs and therefore all attention weights are unchanged.
+
+        \item No. Selectivity depends on score differences relative to
+        temperature, not on temperature alone. For example, if all scores
+        are equal, the attention weights are uniform even when $\tau=0.2$.
+    \end{enumerate}
+
+    \item \textbf{Adaptive temperature.}\nopagebreak[4]
+    \begin{enumerate}[label=\textbf{(\alph*)}, leftmargin=*]
+        \item Design A uses the same temperature at every decoder step, so it
+        cannot adjust that parameter to the current context. Design B can
+        predict a different temperature from the decoder state at each step,
+        allowing more flexibility. Even with a fixed temperature, Design A's
+        attention weights can still change as the scores change.
+
+        \item The interpretation may be incorrect because selectivity depends
+        on score differences relative to temperature:
+        \[
+            \frac{\alpha_{ij}}{\alpha_{ik}}
+            =\exp\!\left(\frac{e_{ij}-e_{ik}}{\tau_i}\right).
+        \]
+        For example, tied scores give uniform weights even with a small
+        temperature. Conversely, a large score gap can produce focused
+        attention even with a large temperature.
+    \end{enumerate}
+\end{enumerate}
 }
 
 
@@ -564,7 +834,67 @@ Another approach is $L_2$ regularization, which modifies the loss function:
 \end{exercise}
 
 \Answer{
+\leavevmode\par\nopagebreak[4]
+\begin{enumerate}[label=\textbf{(\arabic*)}, leftmargin=*]
+    \item \textbf{Weight decay and $L_2$ regularization.}\nopagebreak[4]
 
+    Let $g_t=\nabla_\theta\mathcal L(\theta_t)$ and let $\eta$ be the
+    learning rate. For plain SGD, the two updates are
+    \[
+    \begin{aligned}
+        \text{Weight decay:}\quad
+        \theta_{t+1}&=\theta_t-\eta g_t-\lambda\theta_t,\\
+        L_2\text{ regularization:}\quad
+        \theta_{t+1}&=\theta_t-\eta(g_t+2\gamma\theta_t).
+    \end{aligned}
+    \]
+    They are equivalent when $\lambda=2\eta\gamma$.
+
+    For RMSProp and Adam, the updates are not generally equivalent. With
+    $L_2$ regularization, the optimizer receives
+    $\widetilde g_t=g_t+2\gamma\theta_t$. For example, its squared-gradient
+    average has the form
+    \[
+        \widetilde v_t=\rho\widetilde v_{t-1}
+        +(1-\rho)\widetilde g_t\odot\widetilde g_t,
+    \]
+    and the gradient is scaled using this average. Adam also includes
+    $\widetilde g_t$ in its first-moment average. In contrast, the stated
+    weight decay uses the unregularized gradient in these averages and
+    subtracts $\lambda\theta_t$ separately. Thus the regularization term
+    is adaptively scaled in the first case but not in the second.
+
+    \item \textbf{Squared-error level sets.}\nopagebreak[4]
+
+    Let $X$ have rows $[1,x_i]$, let $\beta=(\beta_0,\beta_1)^\top$,
+    and suppose the feature values are not all equal, so $X$ has full column
+    rank. The least-squares minimizer $\widehat\beta$ satisfies
+    $X^\top(y-X\widehat\beta)=0$. Expanding around $\widehat\beta$ gives
+    \[
+        L(\beta)=\tfrac12\|y-X\beta\|_2^2
+        =L(\widehat\beta)+\tfrac12(\beta-\widehat\beta)^\top
+        X^\top X(\beta-\widehat\beta).
+    \]
+    Since $X^\top X$ is symmetric positive definite, write
+    $X^\top X=Q\operatorname{diag}(a_1,a_2)Q^\top$ with $a_1,a_2>0$.
+    In coordinates $u=Q^\top(\beta-\widehat\beta)$, the level set
+    $L(\beta)=L(\widehat\beta)+c$, for $c>0$, becomes
+    \[
+        \frac{u_1^2}{2c/a_1}+\frac{u_2^2}{2c/a_2}=1,
+    \]
+    an ellipse centered at $\widehat\beta$. At the minimum the level set
+    is a point, and below it the level set is empty. If all feature values
+    are equal, $X$ is rank deficient and the level sets are lines rather
+    than nondegenerate ellipses.
+
+    \item \textbf{Sparsity and feature selection.}\nopagebreak[4]
+
+    $L_1$ regularization promotes sparsity: it can set coefficients exactly
+    to zero. $L_2$ regularization usually shrinks coefficients toward zero
+    without making them exactly zero. Therefore, $L_1$ is the appropriate
+    choice for feature subset selection, since its nonzero coefficients
+    identify the selected features.
+\end{enumerate}
 }
 % Q5
 
@@ -631,7 +961,50 @@ the paper itself discusses.
 
 \end{exercise}
 
+\newpage
+\Answer{
+\leavevmode\par\nopagebreak[4]
+\textbf{Summary.} Dosovitskiy et al. investigate whether a standard
+Transformer can perform image classification without a convolutional
+backbone. Their Vision Transformer (ViT) splits an image into patches,
+projects them into embeddings, adds positional embeddings and a
+classification token, and processes the resulting sequence with a
+Transformer encoder. Unlike a CNN, it has less built-in spatial locality
+and uses self-attention to connect patches across the image. After
+supervised pretraining on large datasets and fine-tuning on downstream
+tasks, the authors report strong transfer results, including 88.55\%
+accuracy on ImageNet. They also find that ViT performs less well relative
+to CNNs when pretrained on smaller datasets.
 
+\medskip
+\textbf{Strengths.} The paper makes a convincing case that a relatively
+simple Transformer architecture can be effective for vision when trained
+at scale. Its experiments compare ViTs, ResNets and hybrids across
+several pretraining data sizes and transfer benchmarks, making the
+tradeoff between data scale and inductive bias clearer. The authors also
+compare pretraining compute and release code and pretrained models,
+which makes the approach useful for further research.
 
+\medskip
+\textbf{Weaknesses.} The strongest results rely on large-scale pretraining,
+including the in-house JFT dataset, which makes the largest experiments
+harder to reproduce. The paper also shows that ViT can overfit more than
+CNNs with smaller pretraining datasets. Although patching reduces the
+number of tokens, dense attention becomes more expensive as image
+resolution increases or patch size decreases. Comparisons on public data
+under matched compute budgets, as well as evaluations on tasks such as
+segmentation and detection, would help clarify these tradeoffs.
+
+\medskip
+\textbf{Reflections.} ViT connects the course's attention and Transformer
+concepts to images: patch tokens exchange information through self-attention,
+whereas CNNs build locality into their filters. The paper also illustrates
+how inductive bias and data availability affect generalization. A useful
+follow-up would compare a pure ViT, a CNN and a CNN--Transformer hybrid
+under several small public-data budgets, with comparable compute and tuning.
+The paper already studies hybrids, but a focused low-data comparison could
+test whether local features improve transfer when data is limited. I would
+measure downstream accuracy alongside training cost and inference latency.
+}
 
 \end{document}

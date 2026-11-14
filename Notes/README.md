@@ -60,6 +60,25 @@ Each note covers one main part and keeps its sub-subquestions together.
 
 - [Organisation et fichiers à ajouter](assignment2/README.md).
 - [Notes théoriques](assignment2/theory/).
+- [1.1 — Rewriting linear attention](assignment2/theory/question1/01-attention-lineaire.md).
+- [1.2 — Recurrent form](assignment2/theory/question1/02-recurrent-form.md).
+- [1.3 — Parallel form](assignment2/theory/question1/03-parallel-form.md).
+- [1.4 — Comparing complexity](assignment2/theory/question1/04-complexity.md).
+- [2.1 — Counting sequences](assignment2/theory/question2/01-counting-sequences.md).
+- [2.2 — Exhaustive enumeration](assignment2/theory/question2/02-exhaustive-enumeration.md).
+- [2.3 — Beam search and complexity](assignment2/theory/question2/03-beam-search-complexity.md).
+- [2.4 — Greedy and beam decoding](assignment2/theory/question2/04-greedy-and-beam-decoding.md).
+- [2.5 — Decoding limitations](assignment2/theory/question2/05-decoding-limitations.md).
+- [3.1 — Effect of temperature](assignment2/theory/question3/01-effect-of-temperature.md).
+- [3.2 — Scaling alignment scores](assignment2/theory/question3/02-scaling-scores.md).
+- [3.3 — Adaptive temperature](assignment2/theory/question3/03-adaptive-temperature.md).
+- [4.1 — Weight decay and L2](assignment2/theory/question4/01-weight-decay-and-l2.md).
+- [4.2 — Squared-error level sets](assignment2/theory/question4/02-squared-error-level-sets.md).
+- [4.3 — Sparsity and feature selection](assignment2/theory/question4/03-sparsity-and-feature-selection.md).
+- [5.1 — ViT summary](assignment2/theory/question5/01-summary.md).
+- [5.2 — ViT strengths](assignment2/theory/question5/02-strengths.md).
+- [5.3 — ViT weaknesses](assignment2/theory/question5/03-weaknesses.md).
+- [5.4 — ViT reflections](assignment2/theory/question5/04-reflections.md).
 - [Code et notebooks](assignment2/python-code/).
 
 Open a Markdown note in VS Code and press **Ctrl+Shift+V** to preview its text and equations.
