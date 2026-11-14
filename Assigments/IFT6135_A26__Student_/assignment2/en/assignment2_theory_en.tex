@@ -307,7 +307,8 @@ Justify your answers briefly, and comment on the dependence on $L$.
     \newpage
     \item \textbf{Complexity.}\nopagebreak[4]
 
-    Both matrix forms compute an $L\times L$ score matrix and multiply it
+    Softmax attention and the parallel form both compute an $L\times L$
+    score matrix and multiply it
     by $\mV$, giving $O(L^2d)$ work. Softmax adds $O(L^2)$ work. The
     recurrent form updates and reads a $d\times d$ state at each of the
     $L$ positions, giving $O(Ld^2)$ work.
@@ -315,8 +316,7 @@ Justify your answers briefly, and comment on the dependence on $L$.
     For the sequential counts, assume the full sequence is available and
     count each parallel matrix operation or softmax as one stage. The matrix
     forms then use $O(1)$ stages, while the recurrent loop uses $O(L)$ because
-    $\mS_t$ depends on $\mS_{t-1}$. This does not count the internal depth
-    of the matrix operations. For fixed $d$, the recurrent work is linear in
+    $\mS_t$ depends on $\mS_{t-1}$. For fixed $d$, the recurrent work is linear in
     $L$, while the work of the matrix forms is quadratic.
 \end{enumerate}
 }
@@ -435,7 +435,9 @@ For clarity we will drop the explicit conditioning on $w_{0}$, assuming from now
     Exhaustive search evaluates all $N^T$ possible continuations and selects
     the one with the highest joint probability. This is impractical for
     realistic sequence lengths and vocabulary sizes: the number of candidates
-    grows exponentially with $T$ (and as $N^T$ with vocabulary size $N$).
+    grows exponentially with $T$. It is not scalable with vocabulary size
+    either, since the cost is a polynomial of degree $T$ in $N$. For example,
+    with $N=10^4$ and $T=10$, there are already $10^{40}$ sequences.
 
     \item \textbf{Beam search complexity.}\nopagebreak[4]
 
@@ -448,12 +450,12 @@ For clarity we will drop the explicit conditioning on $w_{0}$, assuming from now
     The candidate scores and the $B$ sequences require $O(BN+BT)$ space.
     These bounds assume that each conditional log-probability is available
     in constant time; they exclude the cost of evaluating and storing the
-    language model. Other selection and prefix-storage methods can give
-    different bounds.
+    language model.
 
-    Beam search considers far fewer sequences than exhaustive search, but
-    it still scores $BN$ candidates at every step. It can be practical with
-    a modest beam width, although a large vocabulary increases the cost.
+    Beam search considers far fewer sequences than exhaustive search: its
+    cost is linear in $N$ instead of $N^T$. It is therefore practical with a
+    modest beam width, even for large vocabularies, although it still scores
+    $BN$ candidates at every step.
 
     \newpage
     \item \textbf{Greedy and beam search on the tree.}\nopagebreak[4]
@@ -514,16 +516,20 @@ For clarity we will drop the explicit conditioning on $w_{0}$, assuming from now
 
         Thus the two sequences are \texttt{a blue square} and
         \texttt{a red circle}, with log-likelihoods $-9.3$ and $-9.4$.
-        The given initialization uses two identical \texttt{<BOS>} beams;
-        without deduplication, ties may instead produce duplicate sequences.
     \end{enumerate}
 
     \item \textbf{Limitations.}\nopagebreak[4]
 
     Greedy decoding commits to the best next token at each step, so an
-    early choice can rule out the most likely complete sequence. Beam search
-    keeps more alternatives, but it can still discard a prefix that would
-    lead to a better sequence. Neither method guarantees the global optimum.
+    early choice can rule out the best complete sequence. In the tree, it
+    picks \texttt{red} over \texttt{green} at step 2 ($-3.1>-3.4$) and ends
+    at $-9.1$, while \texttt{the green rectangle} reaches
+    $-1.5-3.4-3.3=-8.2$.
+
+    Beam search keeps $B$ hypotheses, but it still prunes on prefix scores:
+    here it drops both \texttt{the} prefixes at step 2 and returns $-9.3$,
+    which is even worse than greedy. A wider beam therefore does not
+    guarantee a better result, and it costs about $B$ times more than greedy.
 \end{enumerate}
 
 }
@@ -700,7 +706,10 @@ Consider two designs:
         \end{aligned}
         \]
         Increasing $e_k$ moves the context locally toward $h_k$; if
-        $h_k=c$, the first-order change is zero.
+        $h_k=c$, the first-order change is zero. The size of this change is
+        proportional to $\alpha_k/\tau$: a state that receives almost no
+        attention barely changes $c$, and for fixed weights, a lower
+        temperature makes $c$ more sensitive to the scores.
     \end{enumerate}
 
     \item \textbf{Scaling the alignment scores.}\nopagebreak[4]
@@ -711,9 +720,13 @@ Consider two designs:
         \]
         so the softmax inputs and therefore all attention weights are unchanged.
 
-        \item No. Selectivity depends on score differences relative to
-        temperature, not on temperature alone. For example, if all scores
-        are equal, the attention weights are uniform even when $\tau=0.2$.
+        \item No. By (a), only the ratio between the score scale and the
+        temperature matters. For instance, $\tau=0.2$ with scores $0.2e_j$
+        gives exactly the same weights as $\tau=1$ with scores $e_j$, so the
+        model can compensate for a small temperature by learning small scores.
+        Selectivity depends on score differences relative to temperature,
+        not on temperature alone. If all scores are equal, the attention
+        weights are uniform even when $\tau=0.2$.
     \end{enumerate}
 
     \item \textbf{Adaptive temperature.}\nopagebreak[4]
@@ -721,8 +734,7 @@ Consider two designs:
         \item Design A uses the same temperature at every decoder step, so it
         cannot adjust that parameter to the current context. Design B can
         predict a different temperature from the decoder state at each step,
-        allowing more flexibility. Even with a fixed temperature, Design A's
-        attention weights can still change as the scores change.
+        allowing more flexibility.
 
         \item The interpretation may be incorrect because selectivity depends
         on score differences relative to temperature:
@@ -838,31 +850,43 @@ Another approach is $L_2$ regularization, which modifies the loss function:
 \begin{enumerate}[label=\textbf{(\arabic*)}, leftmargin=*]
     \item \textbf{Weight decay and $L_2$ regularization.}\nopagebreak[4]
 
-    Let $g_t=\nabla_\theta\mathcal L(\theta_t)$ and let $\eta$ be the
-    learning rate. For plain SGD, the two updates are
+    We use the notation of the lecture slides: $h$ is the minibatch gradient
+    of $\mathcal L$ and $\epsilon$ the learning rate. With $L_2$
+    regularization, the optimizer receives the gradient $h+2\gamma\theta$.
+
+    \textbf{SGD.} The two updates are
     \[
     \begin{aligned}
         \text{Weight decay:}\quad
-        \theta_{t+1}&=\theta_t-\eta g_t-\lambda\theta_t,\\
+        \theta_{t+1}&=\theta_t-\epsilon h-\lambda\theta_t,\\
         L_2\text{ regularization:}\quad
-        \theta_{t+1}&=\theta_t-\eta(g_t+2\gamma\theta_t).
+        \theta_{t+1}&=\theta_t-\epsilon(h+2\gamma\theta_t)
+        =\theta_t-\epsilon h-2\epsilon\gamma\theta_t.
     \end{aligned}
     \]
-    They are equivalent when $\lambda=2\eta\gamma$.
+    They are equivalent when $\lambda=2\epsilon\gamma$, so the statement
+    holds for SGD.
 
-    For RMSProp and Adam, the updates are not generally equivalent. With
-    $L_2$ regularization, the optimizer receives
-    $\widetilde g_t=g_t+2\gamma\theta_t$. For example, its squared-gradient
-    average has the form
+    \textbf{RMSProp.} With $L_2$ regularization, the squared gradient
+    accumulation and the update become
     \[
-        \widetilde v_t=\rho\widetilde v_{t-1}
-        +(1-\rho)\widetilde g_t\odot\widetilde g_t,
+        r\leftarrow\rho r+(1-\rho)(h+2\gamma\theta)\odot(h+2\gamma\theta),
+        \qquad
+        \Delta\theta=-\frac{\epsilon}{\sqrt{\delta+r}}\odot(h+2\gamma\theta).
     \]
-    and the gradient is scaled using this average. Adam also includes
-    $\widetilde g_t$ in its first-moment average. In contrast, the stated
-    weight decay uses the unregularized gradient in these averages and
-    subtracts $\lambda\theta_t$ separately. Thus the regularization term
-    is adaptively scaled in the first case but not in the second.
+    The decay applied to coordinate $i$ is therefore
+    $2\epsilon\gamma\theta_i/\sqrt{\delta+r_i}$. It varies across
+    coordinates and over time, and coordinates with large past gradients
+    are decayed less. Weight decay applies the same factor $\lambda$ to
+    every coordinate, so no constant $\lambda$ reproduces this update, and
+    the statement does not hold.
+
+    \textbf{Adam.} The statement does not hold either. The term
+    $2\gamma\theta$ enters both the first moment $s$ and the second moment
+    $r$, so the update $-\epsilon\,\hat s/(\sqrt{\hat r}+\delta)$ mixes the
+    penalty with past gradients through momentum and rescales it per
+    coordinate. With weight decay, $s$ and $r$ only use $h$, and
+    $\lambda\theta_t$ is subtracted separately.
 
     \item \textbf{Squared-error level sets.}\nopagebreak[4]
 
@@ -884,16 +908,24 @@ Another approach is $L_2$ regularization, which modifies the loss function:
     \]
     an ellipse centered at $\widehat\beta$. At the minimum the level set
     is a point, and below it the level set is empty. If all feature values
-    are equal, $X$ is rank deficient and the level sets are lines rather
-    than nondegenerate ellipses.
+    are equal, $X$ is rank deficient and the level sets are pairs of
+    parallel lines rather than ellipses.
 
     \item \textbf{Sparsity and feature selection.}\nopagebreak[4]
 
     $L_1$ regularization promotes sparsity: it can set coefficients exactly
-    to zero. $L_2$ regularization usually shrinks coefficients toward zero
-    without making them exactly zero. Therefore, $L_1$ is the appropriate
-    choice for feature subset selection, since its nonzero coefficients
-    identify the selected features.
+    to zero. Its penalty pushes every weight toward zero with the same
+    strength $\gamma$, however small the weight already is, so small weights
+    can reach exactly zero. The $L_2$ gradient $2\gamma\theta$ vanishes as the
+    weight shrinks, so weights become small but rarely exactly zero.
+
+    Geometrically, as in the lecture slides, the regularized solution is
+    where the elliptical level sets from part 2 first touch the constraint
+    region. The $L_1$ ball is a diamond, and the ellipses usually touch it
+    at a corner, where some coordinates are zero. The $L_2$ ball is round
+    and has no corners, so the contact point generally has no zero
+    coordinate. For feature subset selection, I would choose $L_1$, since
+    the features with nonzero coefficients form the selected subset.
 \end{enumerate}
 }
 % Q5
@@ -964,47 +996,62 @@ the paper itself discusses.
 \newpage
 \Answer{
 \leavevmode\par\nopagebreak[4]
-\textbf{Summary.} Dosovitskiy et al. investigate whether a standard
-Transformer can perform image classification without a convolutional
-backbone. Their Vision Transformer (ViT) splits an image into patches,
-projects them into embeddings, adds positional embeddings and a
-classification token, and processes the resulting sequence with a
-Transformer encoder. Unlike a CNN, it has less built-in spatial locality
-and uses self-attention to connect patches across the image. After
-supervised pretraining on large datasets and fine-tuning on downstream
-tasks, the authors report strong transfer results, including 88.55\%
-accuracy on ImageNet. They also find that ViT performs less well relative
-to CNNs when pretrained on smaller datasets.
+\textbf{Summary.} Dosovitskiy et al. ask whether a standard Transformer,
+almost unchanged from NLP, can classify images without convolutions. ViT
+cuts a $224\times224$ image into $16\times16$ patches, which gives 196
+tokens. Each patch is flattened and linearly projected, a learnable
+\texttt{[class]} token is prepended as in BERT, learned 1D position
+embeddings are added, and the sequence goes through a Transformer encoder
+followed by an MLP head. Unlike a CNN, the network has no local
+connectivity or weight sharing across positions: every patch can attend to
+every other patch from the first layer. The models are pretrained on
+ImageNet (1.3M images), ImageNet-21k (14M) or the private JFT-300M, then
+fine-tuned. ViT-H/14 pretrained on JFT reaches 88.55\% on ImageNet, against
+87.54\% for BiT-L, with about 2.5k instead of 9.9k TPUv3-core-days
+(Table~2). With ImageNet pretraining only, ViT-L is worse than ViT-B, and
+ResNets do better on the smaller JFT subsets (Figures~3 and~4).
 
 \medskip
-\textbf{Strengths.} The paper makes a convincing case that a relatively
-simple Transformer architecture can be effective for vision when trained
-at scale. Its experiments compare ViTs, ResNets and hybrids across
-several pretraining data sizes and transfer benchmarks, making the
-tradeoff between data scale and inductive bias clearer. The authors also
-compare pretraining compute and release code and pretrained models,
-which makes the approach useful for further research.
+\textbf{Strengths.} For me, the main strength is how little is changed:
+the encoder is the NLP one, so existing implementations and scaling results
+transfer directly. The most useful experiment is the data-size study.
+Instead of reporting only the best number, the authors vary the
+pretraining set from 9M to 300M images and show when the lack of image
+priors starts to pay off. The analysis in Figure~7 is also interesting:
+the 1D position embeddings still learn a row and column structure, and some
+heads attend across the whole image already in the lowest layers while
+others stay local. Releasing the code and pretrained models made a lot of
+follow-up work possible.
 
 \medskip
-\textbf{Weaknesses.} The strongest results rely on large-scale pretraining,
-including the in-house JFT dataset, which makes the largest experiments
-harder to reproduce. The paper also shows that ViT can overfit more than
-CNNs with smaller pretraining datasets. Although patching reduces the
-number of tokens, dense attention becomes more expensive as image
-resolution increases or patch size decreases. Comparisons on public data
-under matched compute budgets, as well as evaluations on tasks such as
-segmentation and detection, would help clarify these tradeoffs.
+\textbf{Weaknesses.} The headline results rely on JFT-300M, which is
+private, so they cannot be reproduced. I also find the inductive-bias
+conclusion less convincing than it is presented. In the low-data regime,
+ViT is compared with ResNets without the stronger augmentation and
+regularization that a model with fewer priors probably needs, so the
+architecture is not separated from the training recipe. DeiT later reached
+81.8\% on ImageNet-1k alone with a stronger training recipe, which
+suggests that part of the gap came from training. The patch size is also a
+fixed choice that is not really justified, and since patches do not
+overlap, an object can be split across them. Smaller patches help, but
+$8\times8$ patches give 784 tokens and an attention matrix 16 times larger,
+which is a problem for high-resolution images and dense tasks.
 
 \medskip
-\textbf{Reflections.} ViT connects the course's attention and Transformer
-concepts to images: patch tokens exchange information through self-attention,
-whereas CNNs build locality into their filters. The paper also illustrates
-how inductive bias and data availability affect generalization. A useful
-follow-up would compare a pure ViT, a CNN and a CNN--Transformer hybrid
-under several small public-data budgets, with comparable compute and tuning.
-The paper already studies hybrids, but a focused low-data comparison could
-test whether local features improve transfer when data is limited. I would
-measure downstream accuracy alongside training cost and inference latency.
+\textbf{Reflections.} The course slides summarize ViT well: local
+connectivity and translation equivariance only come from the MLPs,
+self-attention is global, and the position embeddings carry no 2D
+information by design. In a CNN, the receptive field grows layer by layer,
+as we computed in Assignment~1; in ViT it is global from the first layer,
+so locality has to be learned from data, which explains why so much data
+is needed. The quadratic cost also links to Question~1: linear attention
+reduces the cost from $O(N^2d)$ to $O(Nd^2)$ in the number of patches $N$,
+which could make small patches affordable. As a follow-up, I would compare
+a small ViT, a ResNet-50 and a hybrid on 10\%, 25\%, 50\% and 100\% of
+ImageNet-1k, with the same augmentation, regularization and compute budget.
+If the gap at 10\% mostly disappears, ViT's need for data comes more from
+training than from missing inductive bias. I would also report training
+cost and inference latency.
 }
 
 \end{document}
