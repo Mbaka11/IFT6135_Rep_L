@@ -1,0 +1,381 @@
+\documentclass[12pt]{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsthm}
+\usepackage[hidelinks]{hyperref}
+
+% Formatting and Question/Answer structure match the Assignment 1 report.
+\setlength{\parindent}{0cm}
+\addtolength{\oddsidemargin}{-2cm}
+\addtolength{\evensidemargin}{-2cm}
+\setlength{\textwidth}{17.78cm}
+\addtolength{\topmargin}{-2.25cm}
+\setlength{\textheight}{23.24cm}
+\setlength{\headheight}{30pt}
+\addtolength{\parskip}{5mm}
+\pagestyle{fancy}
+\input{../../math_commands.tex}
+
+\newif\ifexercise
+\exercisetrue
+\newif\ifsolution
+\solutiontrue
+\theoremstyle{definition}
+\newtheorem{exercise}{Question}
+\newtheorem{answer}{Answer}
+\newcommand{\Exercise}[1]{\ifexercise#1\fi}
+\definecolor{answer}{rgb}{0.00, 0.12, 0.60}
+\newcommand{\Answer}[1]{%
+  \ifsolution
+    \begingroup
+    \color{answer}
+    \begin{answer}#1\end{answer}
+    \endgroup
+  \fi
+}
+\setlist[enumerate,1]{leftmargin=*, label=\arabic*.}
+\newcommand{\ToComplete}{\textit{[To be completed from notebook outputs.]}}
+\newcommand{\Blank}{\textemdash}
+\newcommand{\FigurePlaceholder}[1]{%
+  \par\smallskip\noindent
+  \fbox{\parbox[c][2.2cm][c]{0.94\linewidth}{\centering\itshape #1}}
+  \par\smallskip
+}
+\graphicspath{{report-assets/}}
+
+\begin{document}
+\fancyhead{}
+\fancyfoot{}
+\fancyhead[L]{\begin{tabular}[b]{l}
+  IFT6135-A2026 \\
+  Prof: Aishwarya Agrawal
+\end{tabular}}
+\fancyhead[R]{\begin{tabular}[b]{r}
+  Assignment 2 -- Programming Report \\
+  Recurrent Neural Networks and Transformers
+\end{tabular}}
+\fancyfoot[C]{\thepage\quad -- Do not distribute --}
+
+\textbf{Due Date: November 15th, 2026 at 11:00 pm}
+
+\textbf{Student name:} Marsel Bakashov\par
+\textbf{Student number:} 20216284\par
+\textbf{Google Colab notebook (executed, publicly accessible):} \url{https://colab.research.google.com/drive/1mkrZt_VTwP_8uRPqOL60d1Pw37U7fWXo?usp=sharing}\par
+
+% Report-only skeleton. Code is submitted in the single assignment notebook.
+% Insert actual notebook outputs and interpretations; do not invent results.
+
+\begin{exercise}[50] \textbf{Learning to Update Memory with LSTMs}
+\Exercise{
+\subsection*{Part 2: Training and memory analysis (20 points)}
+Use the provided training script and seed 6135. The configuration is
+20 epochs, batch size 128, Adam with learning rate 0.003, and gradient-norm
+clipping at 1.0. Do not add layers or perform a hyperparameter search.
+Select the checkpoint with the lowest validation cross-entropy, keeping
+the earlier epoch in a tie. Do not use a test set to select a checkpoint.
+CPU execution is supported. The provided evaluation script uses \texttt{model.eval()} and \texttt{torch.no\_grad()} without updating model parameters.
+
+\begin{enumerate}[label=\textbf{1.2.\arabic*}, leftmargin=*]
+\item \textbf{Training and evaluation (6 points).} Report training and
+validation loss and accuracy curves (2), the selected epoch and selection
+rule (2), and the hardware, software versions, total training/validation
+time, and model parameter count (2). Use the supplied notebook outputs directly; no additional experiments are required. Save the supplied run outputs.
+
+\item \textbf{Memory analysis (8 points).} Evaluate the same selected
+checkpoint, without retraining, on the 15 supplied conditions
+$D\in\{0,4,8,16,32\}$ and $R\in\{1,2,3\}$, with 360 examples per
+condition. Here the queried key's final update is balanced across positions
+2, 3, and 4 in every condition. Thus its position distribution is the same
+when comparing different $R$, without exposing one fixed answer position.
+Report an accuracy table and plot accuracy
+against $D$, with one curve per $R$ (3). For $R\geq2$, also report the
+\emph{stale-value rate}: the fraction of all examples in that condition
+whose prediction equals the immediately previous value of the queried key
+(2). Report this rate as not applicable for $R=1$.
+In one short paragraph (about 3--5 sentences), explain the patterns and distinguish observed performance from a guaranteed
+memory capability (3). Identify which distractor lengths were absent from
+training. Do not assume that every increase in $D$ or $R$ must reduce accuracy. Differences across $R$ should be interpreted descriptively, since earlier update patterns and spacing also vary. These results concern distractors after all updates, not distractors interleaved with updates.
+
+\item \textbf{Failure analysis (6 points).} Show two actual errors when at least two exist
+across the test conditions, using the exported example IDs, decoded
+sequences, true labels, predictions, and previous values (3). Prefer different error types when available; both types are not required.
+Distinguish stale-value errors from other errors and give a plausible
+explanation connected to retaining and updating memory in 2--3 sentences per example (3). You do not need to prove the internal cause.
+If fewer than two errors exist, show all available errors and state their
+number; if none exist, show two correct examples and discuss the limits of
+this evidence. Failure to make errors does not lose marks.
+\end{enumerate}
+}
+\end{exercise}
+
+\clearpage
+\Answer{
+\leavevmode\par
+\begin{enumerate}[label=\textbf{1.2.\arabic*}, leftmargin=*]
+    \item \textbf{Training and evaluation.}\par
+    \begin{center}
+    \includegraphics[width=\linewidth]{q1_learning_curves.png}\\
+    {\small Training and validation cross-entropy and accuracy by epoch.}
+    \end{center}
+    The selected checkpoint is from \textbf{epoch 20}, chosen by lowest
+    validation cross-entropy; an earlier epoch is retained in case of a tie.
+    Validation accuracy reaches 100\% around epoch 5, but the validation
+    cross-entropy keeps decreasing slowly until the end, so the lowest value
+    is at the last epoch.
+
+    \textbf{Hardware:} NVIDIA Tesla T4 GPU.\par
+    \textbf{Software:} Python 3.13.16; PyTorch 2.14.1+cu130;
+    Linux 6.6.159+ (x86\_64, glibc 2.39).\par
+    \textbf{Total training and validation time:} 18.74 seconds.\par
+    \textbf{Model parameter count:} 25,732.
+
+    \item \textbf{Memory analysis.}\par
+    Accuracy and stale-value rate for the selected checkpoint. Each
+    condition contains 360 examples; stale-value rate is not applicable
+    when $R=1$.
+    \begin{center}
+    \begin{tabular}{cccccc}
+    \toprule
+    $D$ & \multicolumn{3}{c}{Accuracy} & \multicolumn{2}{c}{Stale-value rate} \\
+    \cmidrule(lr){2-4}\cmidrule(lr){5-6}
+    & $R=1$ & $R=2$ & $R=3$ & $R=2$ & $R=3$ \\
+    \midrule
+    0  & 1.0000 & 1.0000 & 1.0000 & 0.0000 & 0.0000 \\
+    4  & 1.0000 & 1.0000 & 1.0000 & 0.0000 & 0.0000 \\
+    8  & 1.0000 & 0.9972 & 1.0000 & 0.0028 & 0.0000 \\
+    16 & 1.0000 & 0.9972 & 1.0000 & 0.0028 & 0.0000 \\
+    32 & 0.9722 & 0.9639 & 0.9611 & 0.0111 & 0.0250 \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+    \begin{center}
+    \includegraphics[width=\linewidth]{q1_memory_analysis.png}\\
+    {\small Accuracy and stale-value rate versus distractor length.}
+    \end{center}
+    Accuracy stays at or above 99.72\% up to $D=16$, then drops to
+    96.11--97.22\% at $D=32$. The lengths $D=16$ and $D=32$ were never seen in
+    training ($D\in\{0,2,4,8\}$), so the model extrapolates well to twice the
+    longest training length but starts to fail at four times. The trend is not
+    monotone in $R$: $R=3$ is perfect at $D=8$ and $16$ while $R=2$ makes one
+    error, but at $D=32$ stale values explain about 64\% of the $R=3$ errors
+    ($0.0250/0.0389$) against about 31\% for $R=2$ ($0.0111/0.0361$). This is
+    observed performance on these 360 examples per condition, not a
+    guaranteed memory: nothing shows that it holds for longer sequences or
+    when distractors are placed between the updates.
+
+    \item \textbf{Failure analysis.}\par
+    \textbf{Example 1 -- stale-value error} (\texttt{test-d8-r2-00151}):
+    \begin{quote}\ttfamily\small
+    A=2 $\to$ A=2 $\to$ B=1 $\to$ C=3 $\to$ B=3 $\to$ C=3
+    $\to$ D0 $\to$ D0 $\to$ D1 $\to$ D2 $\to$ D3 $\to$ D3
+    $\to$ D1 $\to$ D3 $\to$ QUERY B
+    \end{quote}
+    Target: 3; prediction: 1; previous value: 1. This is a stale-value
+    error: the model answers with B's earlier value instead of its latest
+    update. A plausible explanation is that when B=3 arrived, the input and
+    forget gates only partly overwrote the old value in the cell state, and
+    the remaining trace of B=1 won after the eight distractors.
+
+    \textbf{Example 2 -- other error} (\texttt{test-d32-r1-00026}):
+    \begin{quote}\ttfamily\small
+    A=1 $\to$ C=2 $\to$ A=0 $\to$ C=2 $\to$ B=0 $\to$ C=0
+    $\to$ D3 $\to$ D3 $\to$ D0 $\to$ D2 $\to$ D1 $\to$ D0
+    $\to$ D2 $\to$ D2 $\to$ D2 $\to$ D3 $\to$ D1 $\to$ D2
+    $\to$ D1 $\to$ D2 $\to$ D2 $\to$ D0 $\to$ D3 $\to$ D0
+    $\to$ D0 $\to$ D1 $\to$ D2 $\to$ D2 $\to$ D1 $\to$ D0
+    $\to$ D3 $\to$ D0 $\to$ D0 $\to$ D0 $\to$ D0 $\to$ D1
+    $\to$ D1 $\to$ D1 $\to$ QUERY B
+    \end{quote}
+    Target: 0; prediction: 1; previous value: not applicable ($R=1$).
+    This is not a stale-value error, since B has only one update. The
+    sequence has 32 distractors, four times more than any training sequence,
+    and since the forget gate is never exactly 1, the stored value of B can
+    slowly drift until a wrong value wins.
+\end{enumerate}
+}
+
+\clearpage
+\begin{exercise}[50] \textbf{Word-Level vs.\ Sentence-Level Representation Learning with Transformers}
+\Exercise{
+\subsection*{Part 3: Evaluation (14 points)}
+Answer in your PDF report. All metrics, tables and plots are computed by
+provided functions in the notebook. Include the outputs each question asks for.
+
+The notebook compares the four models with two metrics:
+\begin{itemize}
+  \item \textbf{Masked-word accuracy}: 15\% of the words of the 5,000 held-out sentences are
+        masked as in Part 1, and the accuracy is the fraction of masked positions where the MLM head's top guess,
+        $\arg\max_w \ell_{t,w}$, is the original word.
+  \item \textbf{Cosine of similar vs.\ dissimilar pairs}: let $\mathcal{S}$ be the 338 STS-B
+        pairs rated 4 or more (similar) and $\mathcal{D}$ the 308 pairs rated 1 or less (dissimilar). For a pair of
+        sentences with embeddings $(z,z')$, the notebook reports the mean cosines and their gap,
+        \[
+          \overline{\cos}_{\mathcal{S}} = \frac{1}{|\mathcal{S}|} \sum_{(z,z')\in\mathcal{S}} \cos(z,z'), \quad
+          \overline{\cos}_{\mathcal{D}} = \frac{1}{|\mathcal{D}|} \sum_{(z,z')\in\mathcal{D}} \cos(z,z'), \quad
+          \text{gap}=\overline{\cos}_{\mathcal{S}}-\overline{\cos}_{\mathcal{D}}.
+        \]
+        A good sentence embedding gives similar pairs a much higher cosine than dissimilar ones: a large gap.
+\end{itemize}
+
+\begin{enumerate}[label=\textbf{2.3.\arabic*}, leftmargin=*]
+  \item \textbf{Training (2 pts).} Include the loss curves (training and validation loss of each model against
+  training steps).
+  \begin{enumerate}[label=(\alph*)]
+    \item Did any of the three models overfit? Justify your answer using the curves.
+  \end{enumerate}
+
+  \item \textbf{Word level vs.\ sentence level (7 pts).} Include the results table, the masked-word accuracy plot,
+  the cosine plot, and the fill-in-the-blank output for the two given sentences and one sentence of your own.
+  \begin{enumerate}[label=(\alph*)]
+    \item Which model has the highest masked-word accuracy? Explain. [2 sentences max.]
+    \item Which has the largest cosine gap? Explain. [2 sentences max.]
+  \end{enumerate}
+
+  \item \textbf{Classification vs.\ contrastive (3 pts).} Include the search output for the two given queries and
+  one query of your own.
+  \begin{enumerate}[label=(\alph*)]
+    \item Both NLI models were trained on the same sentences with the same labels. Explain the differences in cosine gap and search results. [2 sentences max.]
+  \end{enumerate}
+
+  \item \textbf{Pretraining and fine-tuning (2 pts).} In practice, sentence encoders are first pretrained with MLM
+  and then fine-tuned with a contrastive loss. Based on your results and on the data each objective needs, explain
+  what each stage contributes and why they are applied in this order. [2 sentences max.]
+\end{enumerate}
+}
+\end{exercise}
+
+\clearpage
+\Answer{
+\leavevmode\par
+\begin{enumerate}[label=\textbf{2.3.\arabic*}, leftmargin=*]
+    \item \textbf{Training.}\par
+    \begin{center}
+    \includegraphics[width=\linewidth]{q2_loss_curves.png}\\
+    {\small Training and validation loss for the three models.}
+    \end{center}
+    No. For all three models, the validation loss decreases and then levels
+    off, and it never rises while the training loss keeps falling. It even
+    ends slightly below the training loss (MLM 4.395 vs.\ 4.497, NLI
+    classification 0.749 vs.\ 0.759, contrastive 0.991 vs.\ 1.116), because
+    dropout is active during training but not during validation. Overfitting
+    is also unlikely because none of the models completes one epoch: MLM sees
+    $6000\times128\approx768$k of the 1.15M sentences, NLI classification
+    640k of the 942k pairs, and the contrastive model 512k of the 558k
+    triplets.
+
+    \item \textbf{Word level vs.\ sentence level.}\par
+    \begin{center}
+    \begin{tabular}{lrrrr}
+    \toprule
+    Model & Masked-word accuracy & Similar cosine & Dissimilar cosine & Gap \\
+    \midrule
+    Random initialization & 10.1\% & 0.92 & 0.85 & 0.07 \\
+    MLM & 34.2\% & 0.91 & 0.84 & 0.07 \\
+    NLI classification & 9.2\% & 0.88 & 0.59 & 0.29 \\
+    NLI contrastive & 10.1\% & 0.82 & 0.41 & 0.40 \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+    \begin{center}
+    \includegraphics[width=\linewidth]{q2_evaluation.png}\\
+    {\small Masked-word accuracy and mean cosine of STS-B pairs.}
+    \end{center}
+
+    \newpage
+    \textbf{Fill-in-the-blank predictions} (five per model, in notebook order):
+
+    \textit{A man is playing a [MASK].}
+    \begin{itemize}
+        \item Random: appointment, majoring, rejects, blinked, discharged.
+        \item MLM: ball, guitar, game, bike, park.
+        \item NLI classification: war, competition, married, mace, sisters.
+        \item NLI contrastive: rhythm, liberty, mace, drew, instantly.
+    \end{itemize}
+
+    \textit{Two dogs are [MASK] in the snow.}
+    \begin{itemize}
+        \item Random: appointment, fudge, commissioner, majoring, profiled.
+        \item MLM: playing, sitting, walking, standing, running.
+        \item NLI classification: married, championship, painstakingly, thursdays, war.
+        \item NLI contrastive: deals, outstanding, drew, smuggling, switching.
+    \end{itemize}
+
+    \textit{The chef added salt and pepper to the [MASK].} (own sentence)
+    \begin{itemize}
+        \item Random: appointment, blinked, pots, powder, loire.
+        \item MLM: street, water, beach, city, road.
+        \item NLI classification: sisters, championship, war, triple, competition.
+        \item NLI contrastive: borders, commissioner, alter, remedies, 125.
+    \end{itemize}
+
+    \textbf{(a)} MLM has the highest masked-word accuracy (34.2\%), since it
+    is the only model trained to predict hidden words from their context, and
+    its guesses are plausible words (guitar, playing), even if not always
+    right, as the chef sentence shows. The other models stay around 10\%,
+    which likely matches the 10\% of selected positions left unchanged: with
+    residual connections and the tied output head, an encoder not trained for
+    MLM mostly predicts the input word itself.
+
+    \textbf{(b)} NLI contrastive has the largest gap (0.40), because its loss
+    directly pulls entailed pairs together and pushes the other sentences of
+    the batch away in cosine space, which lowers the dissimilar cosine to
+    0.41. The random and MLM encoders give a high cosine to almost every pair
+    (0.84--0.92), so their mean-pooled embeddings barely separate meanings.
+
+    \item \textbf{Classification vs.\ contrastive learning.}\par
+    The following are the three highest-scoring results returned by each
+    model, with their cosine similarities.
+
+    \textit{Query: a cat is sleeping on the couch.}
+    \begin{itemize}
+        \item MLM: (0.95) A cat is eating corn on the cob; (0.94) A cat is playing on the floor; (0.94) A white cat stands on the floor.
+        \item NLI classification: (0.93) A grey cat laying on a dining table; (0.93) Two dogs and one cat sitting on couch; (0.93) The cat is sitting on a bag of cat food.
+        \item NLI contrastive: (0.70) A ginger and white cat curled up and asleep on a leather chair; (0.69) A cat sleeping on the coach with a pillow behind it; (0.62) A gray cat laying on a brown table.
+    \end{itemize}
+
+    \textit{Query: the stock market fell sharply today.}
+    \begin{itemize}
+        \item MLM: (0.86) But the North Korean nuclear crisis has dominated his time in office; (0.85) McGill also detailed the hole that had been cut in the Caprice's trunk; (0.84) He also reaffirmed his wish to resolve the North Korean nuclear crisis peacefully.
+        \item NLI classification: (0.86) Mt Gox finds 200,000 `forgotten' bitcoins; (0.86) But Lawtey is the first entire prison to take that path; (0.85) Rogers, Videotron reach network-sharing, spectrum deal.
+        \item NLI contrastive: (0.69) Also as part of the deal, PalmSource stock will begin trading on the NASDAQ stock market Wednesday under the ticker symbol: PSRC; (0.65) Shares of Corixa fell 12 cents to \$6.88 on the Nasdaq stock market; (0.57) Amazon's shares yesterday closed at \$54.32 on the Nasdaq Stock Market, up 29 cents.
+    \end{itemize}
+
+    \textit{Query: A child is playing with a dog in the park.} (own query)
+    \begin{itemize}
+        \item MLM: (0.94) A woman is playing volley ball; (0.93) A man is singing and playing the guitar; (0.93) A woman is playing the guitar.
+        \item NLI classification: (0.96) The dog leaps over the fence in the park; (0.95) The dog plays in the park; (0.91) Some dogs running through the park.
+        \item NLI contrastive: (0.80) The dog plays in the park; (0.69) The dog leaps over the fence in the park; (0.61) A kid sitting on a soccer ball at the park.
+    \end{itemize}
+
+    The contrastive loss optimizes the cosine itself against in-batch
+    negatives, while classification only needs $[u;v;|u-v|]$ to be separable
+    by its linear head, so its cosines stay high for every pair (0.59 for
+    dissimilar pairs vs.\ 0.41) and its gap is smaller (0.29 vs.\ 0.40). The
+    searches show the same thing: for the stock-market query, the
+    classification model returns unrelated sentences (bitcoins, a prison) at
+    0.86, while the contrastive model returns three stock-market sentences,
+    and it is also the only one to find sleeping cats for the first query.
+
+    \item \textbf{Pretraining and fine-tuning.}\par
+    MLM only needs raw text (1.15M sentences here, far more in practice) and
+    teaches word-level knowledge of context, as its 34.2\% masked-word
+    accuracy shows, but alone it gives a poor sentence space (gap 0.07).
+    Contrastive fine-tuning needs scarcer labeled pairs (558k triplets here)
+    and reshapes these representations for sentence similarity (gap 0.40), so
+    it comes second, starting from an encoder that already knows the language
+    instead of a random one.
+\end{enumerate}
+}
+\end{document}
